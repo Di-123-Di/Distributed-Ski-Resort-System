@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: neu.cs6650.serverspring.ServerSpringApplicationTests
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.561 s -- in neu.cs6650.serverspring.ServerSpringApplicationTests

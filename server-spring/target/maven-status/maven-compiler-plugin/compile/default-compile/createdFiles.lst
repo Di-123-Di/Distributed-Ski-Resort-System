@@ -1,0 +1,5 @@
+neu/cs6650/serverspring/ServerSpringApplication.class
+neu/cs6650/serverspring/service/MessageProducer.class
+neu/cs6650/serverspring/service/LiftRideEvent.class
+neu/cs6650/serverspring/controller/SkierController.class
+neu/cs6650/serverspring/config/RabbitMQConfig.class
