@@ -6,17 +6,45 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.BlockingQueue;
 
 public class Client1 {
-  private static final String BASE_PATH = "http://ski-resort-alb-1513429395.us-west-2.elb.amazonaws.com:8081";
+  private static String BASE_PATH = "http://localhost:8081";
   private static final int TOTAL_REQUESTS = 200000;
-  private static final int INITIAL_THREADS = 32;
+  private static final int INITIAL_THREADS = 48;
   private static final int REQUESTS_PER_THREAD = 1000;
 
   public static void main(String[] args) {
+    for (int i = 0; i < args.length; i++) {
+      if ("--server".equals(args[i]) && i + 1 < args.length) {
+        BASE_PATH = args[++i];
+      }
+    }
 
     long startTime = System.currentTimeMillis();
     AtomicInteger successCount = new AtomicInteger(0);
     AtomicInteger failureCount = new AtomicInteger(0);
 
+
+    Thread progressThread = new Thread(() -> {
+      while (!Thread.currentThread().isInterrupted()) {
+        try {
+          Thread.sleep(1000);
+          long currentTime = System.currentTimeMillis();
+          long elapsedSeconds = (currentTime - startTime) / 1000;
+          int total = successCount.get() + failureCount.get();
+          double completionPercentage = (total * 100.0) / TOTAL_REQUESTS;
+          System.out.printf("Progress: %.2f%% - Success: %d, Failed: %d, Elapsed: %ds, Current Rate: %.2f req/s%n",
+              completionPercentage,
+              successCount.get(),
+              failureCount.get(),
+              elapsedSeconds,
+              elapsedSeconds > 0 ? total / (double)elapsedSeconds : 0);
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+          break;
+        }
+      }
+    });
+    progressThread.setDaemon(true);
+    progressThread.start();
 
     LiftRideEventGenerator eventGenerator = new LiftRideEventGenerator(TOTAL_REQUESTS);
     BlockingQueue<LiftRideEventGenerator.LiftRideEvent> eventQueue = eventGenerator.getEventQueue();
@@ -32,14 +60,10 @@ public class Client1 {
         failureCount
     );
 
-
     waitForThreads(initialThreads);
-
-
 
     int remainingRequests = TOTAL_REQUESTS - (INITIAL_THREADS * REQUESTS_PER_THREAD);
     int additionalThreads = remainingRequests / REQUESTS_PER_THREAD;
-
 
     List<Thread> remainingThreads = processRequests(
         additionalThreads,
@@ -50,16 +74,14 @@ public class Client1 {
         failureCount
     );
 
-
     waitForThreads(remainingThreads);
+    progressThread.interrupt();
 
     long endTime = System.currentTimeMillis();
     long wallTime = endTime - startTime;
 
-
     printPerformanceStats(successCount, failureCount, wallTime);
   }
-
 
   private static List<Thread> processRequests(
       int threadCount,
@@ -84,17 +106,18 @@ public class Client1 {
     return threads;
   }
 
-
   private static void waitForThreads(List<Thread> threads) {
     for (Thread thread : threads) {
       try {
-        thread.join();
+        thread.join(60000);
+        if (thread.isAlive()) {
+          System.out.println("Thread is taking too long, continuing...");
+        }
       } catch (InterruptedException e) {
         e.printStackTrace();
       }
     }
   }
-
 
   private static void printPerformanceStats(
       AtomicInteger successCount,
@@ -113,6 +136,6 @@ public class Client1 {
     System.out.println("Successful requests: " + successCount.get());
     System.out.println("Failed requests: " + failureCount.get());
     System.out.println("Wall Time: " + wallTime + " milliseconds");
-    System.out.println("Throughput: " + (TOTAL_REQUESTS / (wallTime / 1000.0)) + " requests/second");
+    System.out.println("Throughput: " + (successCount.get() / (wallTime / 1000.0)) + " requests/second");
   }
 }

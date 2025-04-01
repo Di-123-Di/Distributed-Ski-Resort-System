@@ -8,42 +8,38 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-
 public class PerformanceMonitor {
   private static final Logger logger = LoggerFactory.getLogger(PerformanceMonitor.class);
 
-  private final SkierDataStore dataStore;
+  private final DynamoDBService dynamoDBService;
   private final ScheduledExecutorService scheduler;
   private final AtomicInteger lastProcessedCount = new AtomicInteger(0);
 
-  public PerformanceMonitor(SkierDataStore dataStore) {
-    this.dataStore = dataStore;
+  public PerformanceMonitor(DynamoDBService dynamoDBService) {
+    this.dynamoDBService = dynamoDBService;
     this.scheduler = Executors.newScheduledThreadPool(1);
   }
 
-
   public void startMonitoring(int intervalSeconds) {
 
-    lastProcessedCount.set(dataStore.getTotalProcessedMessages());
+    lastProcessedCount.set(dynamoDBService.getTotalProcessedMessages());
 
 
     scheduler.scheduleAtFixedRate(() -> {
-      int currentCount = dataStore.getTotalProcessedMessages();
+      int currentCount = dynamoDBService.getTotalProcessedMessages();
       int previousCount = lastProcessedCount.getAndSet(currentCount);
       int messagesInInterval = currentCount - previousCount;
-
 
       double ratePerSecond = (double) messagesInInterval / intervalSeconds;
 
       logger.info("====== Performance Statistics ======");
       logger.info("Total processed messages: {}", currentCount);
-      logger.info("Unique skiers: {}", dataStore.getUniqueSkiersCount());
+      logger.info("Unique skiers: {}", dynamoDBService.getUniqueSkiersCount());
       logger.info("Processing rate: {}/sec", String.format("%.2f", ratePerSecond));
       logger.info("=====================================");
 
     }, intervalSeconds, intervalSeconds, TimeUnit.SECONDS);
   }
-
 
   public void stopMonitoring() {
     scheduler.shutdown();

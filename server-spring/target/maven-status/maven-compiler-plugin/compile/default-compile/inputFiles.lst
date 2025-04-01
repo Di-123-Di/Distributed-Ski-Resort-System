@@ -1,5 +1,6 @@
+/Users/di/Downloads/DistributedSkiResortSystem/server-spring/src/main/java/neu/cs6650/serverspring/service/SkierService.java
 /Users/di/Downloads/DistributedSkiResortSystem/server-spring/src/main/java/neu/cs6650/serverspring/service/MessageProducer.java
 /Users/di/Downloads/DistributedSkiResortSystem/server-spring/src/main/java/neu/cs6650/serverspring/controller/SkierController.java
+/Users/di/Downloads/DistributedSkiResortSystem/server-spring/src/main/java/neu/cs6650/serverspring/controller/RootController.java
 /Users/di/Downloads/DistributedSkiResortSystem/server-spring/src/main/java/neu/cs6650/serverspring/service/LiftRideEvent.java
 /Users/di/Downloads/DistributedSkiResortSystem/server-spring/src/main/java/neu/cs6650/serverspring/ServerSpringApplication.java
-/Users/di/Downloads/DistributedSkiResortSystem/server-spring/src/main/java/neu/cs6650/serverspring/config/RabbitMQConfig.java

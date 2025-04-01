@@ -2,89 +2,52 @@ package neu.cs6650.consumer;
 
 import com.google.gson.Gson;
 import com.rabbitmq.client.*;
-import io.swagger.client.model.LiftRide;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.TimeoutException;
-
 
 public class RabbitMQConsumer {
+
   private static final Logger logger = LoggerFactory.getLogger(RabbitMQConsumer.class);
 
-  private final String host;
-  private final int port;
-  private final String username;
-  private final String password;
+  private final Channel channel;
   private final String queueName;
-  private final SkierDataStore dataStore;
+  private final DynamoDBService dynamoDBService;
   private final Gson gson = new Gson();
+  private String consumerTag;
 
-  private Connection connection;
-  private Channel channel;
-
-  public RabbitMQConsumer(String host, int port, String username, String password,
-      String queueName, SkierDataStore dataStore) throws IOException {
-    this.host = host;
-    this.port = port;
-    this.username = username;
-    this.password = password;
+  public RabbitMQConsumer(Channel channel, String queueName, DynamoDBService dynamoDBService)
+      throws IOException {
+    this.channel = channel;
     this.queueName = queueName;
-    this.dataStore = dataStore;
+    this.dynamoDBService = dynamoDBService;
 
-
-    initializeConnection();
+    channel.queueDeclare(queueName, true, false, false, null);
+    channel.basicQos(500);
   }
-
-
-  private void initializeConnection() throws IOException {
-    try {
-
-      ConnectionFactory factory = new ConnectionFactory();
-      factory.setHost(host);
-      factory.setPort(port);
-      factory.setUsername(username);
-      factory.setPassword(password);
-
-
-      connection = factory.newConnection();
-      channel = connection.createChannel();
-
-
-      channel.queueDeclare(queueName, true, false, false, null);
-
-
-      channel.basicQos(100);
-
-      logger.info("Successfully connected to RabbitMQ at {}:{}", host, port);
-    } catch (IOException | TimeoutException e) {
-      logger.error("Failed to connect to RabbitMQ", e);
-      throw new IOException("Failed to connect to RabbitMQ", e);
-    }
-  }
-
 
   public void start() throws IOException {
     logger.info("Starting to consume messages from queue: {}", queueName);
-
 
     DeliverCallback deliverCallback = (consumerTag, delivery) -> {
       String message = new String(delivery.getBody(), StandardCharsets.UTF_8);
 
       try {
-
         LiftRideEvent event = gson.fromJson(message, LiftRideEvent.class);
 
-
+        long startTime = System.currentTimeMillis();
         processMessage(event);
+        long endTime = System.currentTimeMillis();
 
+        if ((endTime - startTime) > 500) {
+          logger.warn("Message processing took {} ms", (endTime - startTime));
+        }
 
         channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
       } catch (Exception e) {
         logger.error("Error processing message: {}", message, e);
-
         channel.basicNack(delivery.getEnvelope().getDeliveryTag(), false, true);
       }
     };
@@ -92,34 +55,30 @@ public class RabbitMQConsumer {
     CancelCallback cancelCallback = consumerTag ->
         logger.warn("Consumer {} was cancelled", consumerTag);
 
-    channel.basicConsume(queueName, false, deliverCallback, cancelCallback);
+    this.consumerTag = channel.basicConsume(queueName, false, deliverCallback, cancelCallback);
   }
-
 
   private void processMessage(LiftRideEvent event) {
-
-    try {
-      Thread.sleep(10);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-    }
-
-
-    dataStore.addLiftRide(event.getSkierID(), event.getLiftRide());
+    dynamoDBService.addLiftRide(
+        event.getSkierID(),
+        event.getLiftRide(),
+        event.getResortID(),
+        event.getSeasonID(),
+        event.getDayID()
+    );
   }
 
-
-  public void close() {
-    try {
-      if (channel != null && channel.isOpen()) {
+  public void close() throws IOException {
+    if (channel != null && channel.isOpen()) {
+      try {
+        if (consumerTag != null) {
+          channel.basicCancel(consumerTag);
+        }
         channel.close();
+      } catch (java.util.concurrent.TimeoutException e) {
+        logger.error("Timeout while closing channel", e);
+        throw new IOException("Timeout while closing channel", e);
       }
-      if (connection != null && connection.isOpen()) {
-        connection.close();
-      }
-      logger.info("RabbitMQ connection closed");
-    } catch (IOException | TimeoutException e) {
-      logger.error("Error closing RabbitMQ connection", e);
     }
   }
 }

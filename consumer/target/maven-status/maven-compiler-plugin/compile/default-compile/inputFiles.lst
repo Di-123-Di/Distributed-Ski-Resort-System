@@ -1,5 +1,10 @@
+/Users/di/Downloads/DistributedSkiResortSystem/consumer/src/main/java/neu/cs6650/consumer/DynamoDBService.java
+/Users/di/Downloads/DistributedSkiResortSystem/consumer/src/main/java/neu/cs6650/consumer/api/QueryController.java
 /Users/di/Downloads/DistributedSkiResortSystem/consumer/src/main/java/neu/cs6650/consumer/LiftRideEvent.java
+/Users/di/Downloads/DistributedSkiResortSystem/consumer/src/main/java/neu/cs6650/consumer/RabbitMQConsumerManager.java
 /Users/di/Downloads/DistributedSkiResortSystem/consumer/src/main/java/neu/cs6650/consumer/PerformanceMonitor.java
+/Users/di/Downloads/DistributedSkiResortSystem/consumer/src/main/java/neu/cs6650/consumer/ConsumerConfig.java
 /Users/di/Downloads/DistributedSkiResortSystem/consumer/src/main/java/neu/cs6650/consumer/ConsumerApplication.java
+/Users/di/Downloads/DistributedSkiResortSystem/consumer/src/main/java/neu/cs6650/consumer/ConsumerApiApplication.java
 /Users/di/Downloads/DistributedSkiResortSystem/consumer/src/main/java/neu/cs6650/consumer/SkierDataStore.java
 /Users/di/Downloads/DistributedSkiResortSystem/consumer/src/main/java/neu/cs6650/consumer/RabbitMQConsumer.java

@@ -11,6 +11,7 @@
   <modules>
     <module>swagger-client</module>
     <module>server-spring</module>
+    <module>server-servlet</module>
     <module>client-part1</module>
     <module>consumer</module>
   </modules>

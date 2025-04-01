@@ -10,6 +10,7 @@
         <module name="swagger-client" />
         <module name="consumer" />
         <module name="client-part1" />
+        <module name="server-servlet" />
       </profile>
     </annotationProcessing>
   </component>
