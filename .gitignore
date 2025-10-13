@@ -1,1 +1,21 @@
 .DS_Store
+
+# Maven build output
+target/
+**/target/
+
+# IDE files
+*.iml
+.idea/
+.vscode/
+.settings/
+.classpath
+.project
+
+# Compiled class files
+*.class
+
+# Package files
+*.jar
+*.war
+*.ear

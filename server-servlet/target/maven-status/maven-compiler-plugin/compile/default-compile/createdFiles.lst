@@ -1,9 +1,0 @@
-ski/servlet/HealthCheckServlet.class
-ski/servlet/service/SkierService.class
-ski/servlet/service/MessageProducer.class
-ski/servlet/config/ApplicationConfig.class
-ski/servlet/launcher/TomcatLauncher.class
-ski/servlet/config/ResourceConfig.class
-ski/servlet/Message.class
-ski/servlet/service/LiftRideEvent.class
-ski/servlet/SkierServlet.class
