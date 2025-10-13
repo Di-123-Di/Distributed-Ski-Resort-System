@@ -11,12 +11,9 @@ stages:
 # Code quality validation stage
 code-quality:
   - stage: validate
-  - image: ubuntu:22.04
+  - image: maven:3.6-jdk-8
   - script:
     - echo "=== CODE QUALITY VALIDATION STAGE ==="
-    - echo "Installing Java 8 and Maven..."
-    - apt-get update -y
-    - apt-get install -y openjdk-8-jdk maven
     - echo "Checking Java version..."
     - java -version
     - mvn --version
@@ -35,12 +32,9 @@ code-quality:
 # Compile all modules
 compile-all:
   - stage: compile
-  - image: ubuntu:22.04
+  - image: maven:3.6-jdk-8
   - script:
     - echo "=== COMPILATION STAGE ==="
-    - echo "Installing Java 8 and Maven..."
-    - apt-get update -y
-    - apt-get install -y openjdk-8-jdk maven
     - echo "Cleaning previous builds..."
     - mvn clean
     - echo "Compiling all modules..."
@@ -57,12 +51,9 @@ compile-all:
 # Run all tests
 test-all:
   - stage: test
-  - image: ubuntu:22.04
+  - image: maven:3.6-jdk-8
   - script:
     - echo "=== TESTING STAGE ==="
-    - echo "Installing Java 8 and Maven..."
-    - apt-get update -y
-    - apt-get install -y openjdk-8-jdk maven
     - echo "Running all unit tests..."
     - mvn test
     - echo "Test results summary:"
@@ -77,12 +68,9 @@ test-all:
 # Package all modules
 package-all:
   - stage: package
-  - image: ubuntu:22.04
+  - image: maven:3.6-jdk-8
   - script:
     - echo "=== PACKAGING STAGE ==="
-    - echo "Installing Java 8 and Maven..."
-    - apt-get update -y
-    - apt-get install -y openjdk-8-jdk maven
     - echo "Packaging all modules..."
     - mvn package -DskipTests
     - echo "Listing generated artifacts..."
