@@ -11,7 +11,7 @@ stages:
 # Code quality validation stage
 code-quality:
   - stage: validate
-  - image: maven:3.6-jdk-8
+  - image: maven:3.8-eclipse-temurin-8
   - script:
     - echo "=== CODE QUALITY VALIDATION STAGE ==="
     - echo "Checking Java version..."
@@ -32,7 +32,7 @@ code-quality:
 # Compile all modules
 compile-all:
   - stage: compile
-  - image: maven:3.6-jdk-8
+  - image: maven:3.8-eclipse-temurin-8
   - script:
     - echo "=== COMPILATION STAGE ==="
     - echo "Cleaning previous builds..."
@@ -51,7 +51,7 @@ compile-all:
 # Run all tests
 test-all:
   - stage: test
-  - image: maven:3.6-jdk-8
+  - image: maven:3.8-eclipse-temurin-8
   - script:
     - echo "=== TESTING STAGE ==="
     - echo "Running all unit tests..."
@@ -68,7 +68,7 @@ test-all:
 # Package all modules
 package-all:
   - stage: package
-  - image: maven:3.6-jdk-8
+  - image: maven:3.8-eclipse-temurin-8
   - script:
     - echo "=== PACKAGING STAGE ==="
     - echo "Packaging all modules..."
