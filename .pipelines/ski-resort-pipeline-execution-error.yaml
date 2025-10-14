@@ -1,0 +1,31 @@
+pipeline:
+  name: distributed-ski-resort-pipeline-execution-error
+  description: Pipeline that passes validation but fails during job execution
+
+stages:
+  - build
+  - test
+
+# Job that passes validation but fails during execution
+build-job:
+  - stage: build
+  - image: maven:3.8-eclipse-temurin-8
+  - script:
+    - echo "=== BUILD STAGE ==="
+    - echo "This job will be created successfully"
+    - echo "Installing dependencies first..."
+    - mvn clean install -pl swagger-client -am
+    - echo "Trying to compile with WRONG module name (this will fail)..."
+    - mvn clean compile -pl server-spring-wrong,client-part1
+    - echo "This line will never be reached due to compilation failure"
+
+# Job that depends on the failed build-job
+test-job:
+  - stage: test
+  - image: maven:3.8-eclipse-temurin-8
+  - script:
+    - echo "=== TEST STAGE ==="
+    - echo "This job will never run because build-job failed"
+    - mvn test -pl server-spring
+  - needs:
+    - build-job
