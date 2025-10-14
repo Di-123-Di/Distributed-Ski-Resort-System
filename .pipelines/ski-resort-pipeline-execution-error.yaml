@@ -16,6 +16,7 @@ build-job:
     - echo "Installing dependencies first..."
     - mvn clean install -pl swagger-client -am
     - echo "Trying to compile with WRONG module name (this will fail)..."
+    # ERROR: server-spring-wrong module does not exist
     - mvn clean compile -pl server-spring-wrong,client-part1
     - echo "This line will never be reached due to compilation failure"
 
@@ -28,4 +29,4 @@ test-job:
     - echo "This job will never run because build-job failed"
     - mvn test -pl server-spring
   - needs:
-    - build-job
+    - build-job  # Won't run if build-job fails
