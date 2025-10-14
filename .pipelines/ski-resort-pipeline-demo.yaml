@@ -1,0 +1,51 @@
+pipeline:
+  name: distributed-ski-resort-pipeline-demo
+  description: Quick demo pipeline for Distributed Ski Resort System - Fast execution for classroom demonstration
+
+stages:
+  - validate
+  - compile
+  - test
+
+# Quick code validation stage
+quick-validate:
+  - stage: validate
+  - image: maven:3.8-eclipse-temurin-8
+  - script:
+    - echo "=== QUICK VALIDATION STAGE ==="
+    - echo "Checking Java version..."
+    - java -version
+    - mvn --version
+    - echo "Current working directory:"
+    - pwd
+    - echo "Running Maven validate (quick check)..."
+    - mvn validate
+    - echo "Quick validation completed successfully"
+
+# Fast compilation
+quick-compile:
+  - stage: compile
+  - image: maven:3.8-eclipse-temurin-8
+  - script:
+    - echo "=== QUICK COMPILATION STAGE ==="
+    - echo "Compiling main modules only..."
+    - mvn compile -pl server-spring,client-part1
+    - echo "Checking compilation artifacts..."
+    - find . -name "target" -type d
+    - echo "Quick compilation completed successfully"
+  - needs:
+    - quick-validate
+
+# Quick test execution
+quick-test:
+  - stage: test
+  - image: maven:3.8-eclipse-temurin-8
+  - script:
+    - echo "=== QUICK TESTING STAGE ==="
+    - echo "Running quick tests on main modules..."
+    - mvn test -pl server-spring,client-part1
+    - echo "Test results summary:"
+    - find . -name "surefire-reports" -type d
+    - echo "Quick testing completed successfully"
+  - needs:
+    - quick-compile

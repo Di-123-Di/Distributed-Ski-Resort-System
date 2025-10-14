@@ -1,0 +1,35 @@
+pipeline:
+  name: distributed-ski-resort-pipeline-minimal
+  description: Minimal demo pipeline for Distributed Ski Resort System - Ultra-fast execution for classroom demonstration
+
+stages:
+  - build
+  - test
+
+# Single build job
+build-and-test:
+  - stage: build
+  - image: maven:3.8-eclipse-temurin-8
+  - script:
+    - echo "=== MINIMAL BUILD AND TEST STAGE ==="
+    - echo "Checking Java version..."
+    - java -version
+    - echo "Current working directory:"
+    - pwd
+    - echo "Running Maven clean compile..."
+    - mvn clean compile
+    - echo "Running quick tests..."
+    - mvn test -pl server-spring
+    - echo "Minimal pipeline completed successfully"
+
+# Quick validation job
+quick-check:
+  - stage: test
+  - image: maven:3.8-eclipse-temurin-8
+  - script:
+    - echo "=== QUICK VALIDATION CHECK ==="
+    - echo "Validating project structure..."
+    - mvn validate
+    - echo "Checking for compilation errors..."
+    - mvn compile -q
+    - echo "Quick validation completed successfully"
