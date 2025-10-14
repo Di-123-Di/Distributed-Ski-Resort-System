@@ -1,0 +1,44 @@
+pipeline:
+  name: distributed-ski-resort-pipeline-yaml-errors
+  description: Pipeline with intentional YAML and CI/CD field errors for classroom demonstration
+
+stages:
+  - validate
+  - compile
+  - test
+
+# Job with WRONG stage name (not defined in stages)
+wrong-stage-job:
+  - stage: nonexistent-stage  # ERROR: This stage doesn't exist in stages list
+  - image: maven:3.8-eclipse-temurin-8
+  - script:
+    - echo "This job will fail due to wrong stage name"
+
+# Job with MISSING required fields
+incomplete-job:
+  - stage: validate
+  # ERROR: Missing 'image' field (required by CI/CD system)
+  - script:
+    - echo "This job will fail due to missing image field"
+
+# Job with WRONG image format
+wrong-image-job:
+  - stage: compile
+  - image: nonexistent-docker-image:latest  # ERROR: This Docker image doesn't exist
+  - script:
+    - echo "This job will fail due to wrong Docker image"
+
+# Job with INVALID needs dependency
+invalid-dependency-job:
+  - stage: test
+  - image: maven:3.8-eclipse-temurin-8
+  - script:
+    - echo "This job will fail due to invalid dependency"
+  - needs:
+    - nonexistent-job  # ERROR: This job doesn't exist
+
+# Job with MALFORMED script (not a list)
+malformed-script-job:
+  - stage: validate
+  - image: maven:3.8-eclipse-temurin-8
+  - script: "This should be a list, not a string"  # ERROR: Script must be a list of commands

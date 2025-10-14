@@ -1,0 +1,30 @@
+pipeline:
+  name: distributed-ski-resort-pipeline-cicd-errors
+  description: Pipeline with CI/CD system field errors for classroom demonstration
+
+stages:
+  - validate
+  - compile
+
+# Error 1: Wrong stage name
+wrong-stage:
+  - stage: build  # ERROR: 'build' is not in stages list (only validate, compile)
+  - image: maven:3.8-eclipse-temurin-8
+  - script:
+    - echo "This will fail due to wrong stage name"
+
+# Error 2: Missing required image field
+missing-image:
+  - stage: validate
+  # ERROR: Missing 'image' field (required by CI/CD system)
+  - script:
+    - echo "This will fail due to missing image"
+
+# Error 3: Invalid dependency
+invalid-needs:
+  - stage: compile
+  - image: maven:3.8-eclipse-temurin-8
+  - script:
+    - echo "This will fail due to invalid dependency"
+  - needs:
+    - wrong-stage  # ERROR: 'wrong-stage' will fail, so this dependency is invalid
