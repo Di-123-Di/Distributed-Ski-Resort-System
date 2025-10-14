@@ -28,7 +28,9 @@ quick-compile:
   - image: maven:3.8-eclipse-temurin-8
   - script:
     - echo "=== QUICK COMPILATION STAGE ==="
-    - echo "Compiling main modules only..."
+    - echo "Installing dependencies first..."
+    - mvn clean install -pl swagger-client -am
+    - echo "Compiling main modules..."
     - mvn compile -pl server-spring,client-part1
     - echo "Checking compilation artifacts..."
     - find . -name "target" -type d

@@ -16,8 +16,10 @@ build-and-test:
     - java -version
     - echo "Current working directory:"
     - pwd
-    - echo "Running Maven clean compile..."
-    - mvn clean compile
+    - echo "Installing dependencies first..."
+    - mvn clean install -pl swagger-client -am
+    - echo "Building main modules..."
+    - mvn clean compile -pl server-spring,client-part1
     - echo "Running quick tests..."
     - mvn test -pl server-spring
     - echo "Minimal pipeline completed successfully"
