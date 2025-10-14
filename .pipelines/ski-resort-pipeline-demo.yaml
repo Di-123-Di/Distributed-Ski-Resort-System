@@ -1,6 +1,6 @@
 pipeline:
   name: distributed-ski-resort-pipeline-demo
-  description: Quick demo pipeline for Distributed Ski Resort System - Fast execution for classroom demonstration
+  description: Demo pipeline for Distributed Ski Resort System - Fast execution for classroom demonstration
 
 stages:
   - validate
@@ -22,7 +22,7 @@ quick-validate:
     - mvn validate
     - echo "Quick validation completed successfully"
 
-# Fast compilation
+# Fast compilation with intentional error
 quick-compile:
   - stage: compile
   - image: maven:3.8-eclipse-temurin-8
@@ -30,22 +30,24 @@ quick-compile:
     - echo "=== QUICK COMPILATION STAGE ==="
     - echo "Installing dependencies first..."
     - mvn clean install -pl swagger-client -am
-    - echo "Compiling main modules..."
-    - mvn compile -pl server-spring,client-part1
+    - echo "Compiling main modules with MISSING dependency..."
+    - mvn compile -pl server-spring,client-part1,non-existent-module
     - echo "Checking compilation artifacts..."
     - find . -name "target" -type d
     - echo "Quick compilation completed successfully"
   - needs:
     - quick-validate
 
-# Quick test execution
+# Quick test execution with intentional error
 quick-test:
   - stage: test
   - image: maven:3.8-eclipse-temurin-8
   - script:
     - echo "=== QUICK TESTING STAGE ==="
     - echo "Running quick tests on main modules..."
-    - mvn test -pl server-spring,client-part1
+    - mvn test -pl server-spring
+    - echo "Running tests with WRONG goal..."
+    - mvn test-wrong -pl client-part1
     - echo "Test results summary:"
     - find . -name "surefire-reports" -type d
     - echo "Quick testing completed successfully"
