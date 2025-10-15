@@ -13,9 +13,9 @@ validation-job:
   - script:
     - echo "This job will fail validation due to missing image field"
 
-# Job with wrong stage name
+
 compile-job:
-  - stage: build  # ERROR: 'build' is not defined in stages list
+  - stage: build
   - image: maven:3.8-eclipse-temurin-8
   - script:
     - echo "This job will fail validation due to wrong stage name"
