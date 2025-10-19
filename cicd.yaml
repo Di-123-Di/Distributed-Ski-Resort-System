@@ -1,0 +1,197 @@
+name: "DistributedSkiResortSystem"
+description: "A comprehensive distributed system for managing ski resort lift operations"
+version: "1.0.0"
+
+# Pipeline configuration
+pipeline:
+  workingDirectory: "/Users/di/Downloads/DistributedSkiResortSystem"
+  
+# Repository information
+repository:
+  type: "git"
+  url: "https://github.com/Di-123-Di/Distributed-Ski-Resort-System.git"
+  branch: "main"
+  commit: "HEAD"
+
+# Environment variables
+environment:
+  JAVA_HOME: "/usr/lib/jvm/java-17-openjdk"
+  MAVEN_HOME: "/usr/share/maven"
+  RABBITMQ_HOST: "localhost"
+  RABBITMQ_USERNAME: "myuser"
+  RABBITMQ_PASSWORD: "mypassword"
+  SERVER_PORT: "8081"
+  CONSUMER_PORT: "8082"
+
+# Pipeline stages
+stages:
+  - name: "build"
+    description: "Build all Maven modules"
+    jobs:
+      - name: "maven-clean"
+        description: "Clean Maven build"
+        script: 
+          - "mvn clean"
+        timeout: 300
+        
+      - name: "maven-compile"
+        description: "Compile all modules"
+        script:
+          - "mvn compile -DskipTests"
+        timeout: 600
+        dependsOn: ["maven-clean"]
+        
+      - name: "maven-package"
+        description: "Package all modules"
+        script:
+          - "mvn package -DskipTests"
+        timeout: 900
+        dependsOn: ["maven-compile"]
+
+  - name: "test"
+    description: "Run unit tests"
+    jobs:
+      - name: "unit-tests"
+        description: "Run Maven unit tests"
+        script:
+          - "mvn test"
+        timeout: 1200
+        dependsOn: ["maven-package"]
+        
+      - name: "integration-tests"
+        description: "Run integration tests"
+        script:
+          - "mvn verify -P integration-tests"
+        timeout: 1800
+        dependsOn: ["unit-tests"]
+
+  - name: "quality-check"
+    description: "Code quality and security checks"
+    jobs:
+      - name: "spotbugs-check"
+        description: "Run SpotBugs static analysis"
+        script:
+          - "mvn spotbugs:check"
+        timeout: 600
+        dependsOn: ["maven-package"]
+        
+      - name: "checkstyle-check"
+        description: "Run Checkstyle code style check"
+        script:
+          - "mvn checkstyle:check"
+        timeout: 300
+        dependsOn: ["maven-package"]
+
+  - name: "build-artifacts"
+    description: "Build deployable artifacts"
+    jobs:
+      - name: "build-server-spring"
+        description: "Build Spring Boot server JAR"
+        script:
+          - "cd server-spring"
+          - "mvn clean package -DskipTests"
+          - "cp target/server-spring-1.0-SNAPSHOT.jar ../artifacts/"
+        timeout: 600
+        dependsOn: ["maven-package"]
+        
+      - name: "build-consumer"
+        description: "Build consumer JAR"
+        script:
+          - "cd consumer"
+          - "mvn clean package -DskipTests"
+          - "cp target/consumer-1.0-SNAPSHOT-jar-with-dependencies.jar ../artifacts/"
+        timeout: 600
+        dependsOn: ["maven-package"]
+        
+      - name: "build-client"
+        description: "Build client JAR"
+        script:
+          - "cd client-part1"
+          - "mvn clean package -DskipTests"
+          - "cp target/client-part1-1.0-SNAPSHOT-jar-with-dependencies.jar ../artifacts/"
+        timeout: 600
+        dependsOn: ["maven-package"]
+
+  - name: "deploy"
+    description: "Deploy services"
+    jobs:
+      - name: "deploy-rabbitmq"
+        description: "Start RabbitMQ service"
+        script:
+          - "docker-compose up -d rabbitmq"
+          - "sleep 30"
+          - "docker ps | grep rabbitmq"
+        timeout: 300
+        
+      - name: "deploy-consumer"
+        description: "Deploy consumer service"
+        script:
+          - "java -jar artifacts/consumer-1.0-SNAPSHOT-jar-with-dependencies.jar --host $RABBITMQ_HOST --username $RABBITMQ_USERNAME --password $RABBITMQ_PASSWORD --threads 64 --port $CONSUMER_PORT &"
+          - "sleep 10"
+          - "curl -f http://localhost:$CONSUMER_PORT/api/stats || exit 1"
+        timeout: 300
+        dependsOn: ["deploy-rabbitmq", "build-consumer"]
+        
+      - name: "deploy-server-spring"
+        description: "Deploy Spring Boot server"
+        script:
+          - "java -jar artifacts/server-spring-1.0-SNAPSHOT.jar --server.port=$SERVER_PORT --spring.rabbitmq.host=$RABBITMQ_HOST --spring.rabbitmq.username=$RABBITMQ_USERNAME --spring.rabbitmq.password=$RABBITMQ_PASSWORD &"
+          - "sleep 15"
+          - "curl -f http://localhost:$SERVER_PORT/actuator/health || exit 1"
+        timeout: 300
+        dependsOn: ["deploy-rabbitmq", "build-server-spring"]
+
+  - name: "integration-test"
+    description: "Run integration tests against deployed services"
+    jobs:
+      - name: "test-api-endpoints"
+        description: "Test server API endpoints"
+        script:
+          - "curl -X GET http://localhost:$SERVER_PORT/actuator/health"
+          - "curl -X POST http://localhost:$SERVER_PORT/skiers/123/seasons/2024/days/1/skiers/456 -H 'Content-Type: application/json' -d '{\"time\":123, \"liftID\":456}'"
+        timeout: 300
+        dependsOn: ["deploy-server-spring"]
+        
+      - name: "test-consumer-api"
+        description: "Test consumer API endpoints"
+        script:
+          - "curl -X GET http://localhost:$CONSUMER_PORT/api/stats"
+          - "curl -X GET http://localhost:$CONSUMER_PORT/api/skiers/123/seasons/2024/days/count"
+        timeout: 300
+        dependsOn: ["deploy-consumer"]
+        
+      - name: "load-test"
+        description: "Run basic load test"
+        script:
+          - "java -jar artifacts/client-part1-1.0-SNAPSHOT-jar-with-dependencies.jar --server http://localhost:$SERVER_PORT --threads 10 --requests 100"
+        timeout: 600
+        dependsOn: ["deploy-server-spring", "deploy-consumer", "build-client"]
+
+  - name: "cleanup"
+    description: "Cleanup resources"
+    jobs:
+      - name: "stop-services"
+        description: "Stop all running services"
+        script:
+          - "pkill -f 'server-spring' || true"
+          - "pkill -f 'consumer' || true"
+          - "docker-compose down || true"
+        timeout: 120
+        always: true
+
+# Artifacts to collect
+artifacts:
+  - "artifacts/*.jar"
+  - "target/surefire-reports/*.xml"
+  - "target/spotbugsXml.xml"
+  - "target/checkstyle-result.xml"
+  - "*.log"
+
+# Notifications
+notifications:
+  onSuccess:
+    - "echo 'Pipeline completed successfully'"
+  onFailure:
+    - "echo 'Pipeline failed'"
+  onAlways:
+    - "echo 'Pipeline finished'"

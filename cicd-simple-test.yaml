@@ -1,0 +1,87 @@
+name: "DistributedSkiResortSystem-SimpleTest"
+description: "Simple test to verify database and RabbitMQ connections"
+version: "1.0.0"
+
+# Pipeline configuration
+pipeline:
+  workingDirectory: "/Users/di/Downloads/DistributedSkiResortSystem"
+  
+# Repository information
+repository:
+  type: "git"
+  url: "https://github.com/Di-123-Di/Distributed-Ski-Resort-System.git"
+  branch: "main"
+  commit: "HEAD"
+
+# Environment variables
+environment:
+  JAVA_HOME: "/usr/lib/jvm/java-17-openjdk"
+  RABBITMQ_HOST: "localhost"
+  RABBITMQ_USERNAME: "myuser"
+  RABBITMQ_PASSWORD: "mypassword"
+  SERVER_PORT: "8081"
+
+# Pipeline stages
+stages:
+  - name: "build"
+    description: "Build the project"
+    jobs:
+      - name: "maven-build"
+        description: "Build Maven project"
+        script: 
+          - "mvn clean compile -DskipTests"
+        timeout: 300
+
+  - name: "test-connections"
+    description: "Test database and RabbitMQ connections"
+    jobs:
+      - name: "test-rabbitmq-connection"
+        description: "Test RabbitMQ connection"
+        script:
+          - "echo 'Testing RabbitMQ connection...'"
+          - "docker ps | grep rabbitmq || echo 'RabbitMQ not running'"
+          - "curl -f http://localhost:15672/api/overview -u admin:admin || echo 'RabbitMQ management API not accessible'"
+        timeout: 60
+        
+      - name: "test-database-connection"
+        description: "Test database connection"
+        script:
+          - "echo 'Testing database connection...'"
+          - "psql -h localhost -U cicd_user -d cicd_db -c 'SELECT COUNT(*) FROM pipeline_executions;' || echo 'Database connection failed'"
+        timeout: 60
+
+  - name: "deploy-test"
+    description: "Deploy and test services"
+    jobs:
+      - name: "start-server"
+        description: "Start Spring Boot server"
+        script:
+          - "cd server-spring"
+          - "mvn package -DskipTests -q"
+          - "java -jar target/server-spring-1.0-SNAPSHOT.jar --server.port=$SERVER_PORT --spring.rabbitmq.host=$RABBITMQ_HOST --spring.rabbitmq.username=$RABBITMQ_USERNAME --spring.rabbitmq.password=$RABBITMQ_PASSWORD &"
+          - "sleep 15"
+          - "curl -f http://localhost:$SERVER_PORT/actuator/health || exit 1"
+          - "echo 'Server started successfully'"
+        timeout: 300
+        dependsOn: ["maven-build"]
+        
+      - name: "test-api"
+        description: "Test API endpoints"
+        script:
+          - "echo 'Testing API endpoints...'"
+          - "curl -X GET http://localhost:$SERVER_PORT/actuator/health"
+          - "curl -X POST http://localhost:$SERVER_PORT/skiers/123/seasons/2024/days/1/skiers/456 -H 'Content-Type: application/json' -d '{\"time\":123, \"liftID\":456}' || echo 'API test failed'"
+          - "echo 'API tests completed'"
+        timeout: 120
+        dependsOn: ["start-server"]
+
+  - name: "cleanup"
+    description: "Cleanup resources"
+    jobs:
+      - name: "stop-server"
+        description: "Stop server"
+        script:
+          - "pkill -f 'server-spring' || true"
+          - "echo 'Server stopped'"
+        timeout: 30
+        always: true
