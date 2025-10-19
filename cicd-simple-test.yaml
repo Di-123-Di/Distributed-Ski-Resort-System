@@ -1,27 +1,6 @@
 name: "DistributedSkiResortSystem-SimpleTest"
 description: "Simple test to verify database and RabbitMQ connections"
-version: "1.0.0"
 
-# Pipeline configuration
-pipeline:
-  workingDirectory: "/Users/di/Downloads/DistributedSkiResortSystem"
-  
-# Repository information
-repository:
-  type: "git"
-  url: "https://github.com/Di-123-Di/Distributed-Ski-Resort-System.git"
-  branch: "main"
-  commit: "HEAD"
-
-# Environment variables
-environment:
-  JAVA_HOME: "/usr/lib/jvm/java-17-openjdk"
-  RABBITMQ_HOST: "localhost"
-  RABBITMQ_USERNAME: "myuser"
-  RABBITMQ_PASSWORD: "mypassword"
-  SERVER_PORT: "8081"
-
-# Pipeline stages
 stages:
   - name: "build"
     description: "Build the project"
@@ -47,7 +26,7 @@ stages:
         description: "Test database connection"
         script:
           - "echo 'Testing database connection...'"
-          - "psql -h localhost -U cicd_user -d cicd_db -c 'SELECT COUNT(*) FROM pipeline_executions;' || echo 'Database connection failed'"
+          - "PGPASSWORD=cicd_password psql -h localhost -p 5433 -U cicd_user -d cicd_db -c 'SELECT COUNT(*) FROM pipeline_executions;' || echo 'Database connection failed'"
         timeout: 60
 
   - name: "deploy-test"
@@ -58,9 +37,9 @@ stages:
         script:
           - "cd server-spring"
           - "mvn package -DskipTests -q"
-          - "java -jar target/server-spring-1.0-SNAPSHOT.jar --server.port=$SERVER_PORT --spring.rabbitmq.host=$RABBITMQ_HOST --spring.rabbitmq.username=$RABBITMQ_USERNAME --spring.rabbitmq.password=$RABBITMQ_PASSWORD &"
+          - "java -jar target/server-spring-1.0-SNAPSHOT.jar --server.port=8081 --spring.rabbitmq.host=localhost --spring.rabbitmq.username=myuser --spring.rabbitmq.password=mypassword &"
           - "sleep 15"
-          - "curl -f http://localhost:$SERVER_PORT/actuator/health || exit 1"
+          - "curl -f http://localhost:8081/actuator/health || exit 1"
           - "echo 'Server started successfully'"
         timeout: 300
         dependsOn: ["maven-build"]
@@ -69,8 +48,8 @@ stages:
         description: "Test API endpoints"
         script:
           - "echo 'Testing API endpoints...'"
-          - "curl -X GET http://localhost:$SERVER_PORT/actuator/health"
-          - "curl -X POST http://localhost:$SERVER_PORT/skiers/123/seasons/2024/days/1/skiers/456 -H 'Content-Type: application/json' -d '{\"time\":123, \"liftID\":456}' || echo 'API test failed'"
+          - "curl -X GET http://localhost:8081/actuator/health"
+          - "curl -X POST http://localhost:8081/skiers/123/seasons/2024/days/1/skiers/456 -H 'Content-Type: application/json' -d '{\"time\":123, \"liftID\":456}' || echo 'API test failed'"
           - "echo 'API tests completed'"
         timeout: 120
         dependsOn: ["start-server"]
