@@ -1,0 +1,44 @@
+pipeline:
+  name: "DistributedSkiResortSystem"
+  description: "CI/CD pipeline for Distributed Ski Resort System"
+  stages:
+    - build
+    - test
+    - package
+
+# Build stage jobs
+maven-compile:
+  stage: build
+  image: maven:3.8-openjdk-11
+  script: "mvn clean compile -DskipTests"
+
+maven-dependency-check:
+  stage: build
+  image: maven:3.8-openjdk-11
+  script: "mvn dependency:tree"
+
+# Test stage jobs
+unit-tests:
+  stage: test
+  image: maven:3.8-openjdk-11
+  needs: [maven-compile]
+  script: "mvn test"
+
+integration-tests:
+  stage: test
+  image: maven:3.8-openjdk-11
+  needs: [unit-tests]
+  script: "mvn verify -DskipTests=false"
+
+# Package stage jobs
+maven-package:
+  stage: package
+  image: maven:3.8-openjdk-11
+  needs: [integration-tests]
+  script: "mvn package -DskipTests"
+
+docker-build:
+  stage: package
+  image: docker:latest
+  needs: [maven-package]
+  script: "echo 'Docker build would happen here'"
