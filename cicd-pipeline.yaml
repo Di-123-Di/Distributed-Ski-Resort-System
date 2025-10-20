@@ -21,6 +21,7 @@ maven-dependency-check:
   workingDirectory: "/workspace"
   volumeMounts:
     "/Users/di/Downloads/DistributedSkiResortSystem": "/workspace"
+  needs: [maven-compile]
   script: "mvn dependency:tree"
 
 # Test stage jobs
