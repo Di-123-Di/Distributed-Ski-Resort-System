@@ -10,23 +10,35 @@ pipeline:
 maven-compile:
   stage: build
   image: maven:3.8.6-openjdk-11
+  workingDirectory: "/workspace"
+  volumeMounts:
+    "/Users/di/Downloads/DistributedSkiResortSystem": "/workspace"
   script: "mvn clean compile -DskipTests"
 
 maven-dependency-check:
   stage: build
   image: maven:3.8.6-openjdk-11
+  workingDirectory: "/workspace"
+  volumeMounts:
+    "/Users/di/Downloads/DistributedSkiResortSystem": "/workspace"
   script: "mvn dependency:tree"
 
 # Test stage jobs
 unit-tests:
   stage: test
   image: maven:3.8.6-openjdk-11
+  workingDirectory: "/workspace"
+  volumeMounts:
+    "/Users/di/Downloads/DistributedSkiResortSystem": "/workspace"
   needs: [maven-compile]
   script: "mvn test"
 
 integration-tests:
   stage: test
   image: maven:3.8.6-openjdk-11
+  workingDirectory: "/workspace"
+  volumeMounts:
+    "/Users/di/Downloads/DistributedSkiResortSystem": "/workspace"
   needs: [unit-tests]
   script: "mvn verify -DskipTests=false"
 
@@ -34,6 +46,9 @@ integration-tests:
 maven-package:
   stage: package
   image: maven:3.8.6-openjdk-11
+  workingDirectory: "/workspace"
+  volumeMounts:
+    "/Users/di/Downloads/DistributedSkiResortSystem": "/workspace"
   needs: [integration-tests]
   script: "mvn package -DskipTests"
 
