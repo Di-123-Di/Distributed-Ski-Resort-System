@@ -14,7 +14,7 @@ maven-compile:
   volumeMounts:
     "/Users/di/Downloads/DistributedSkiResortSystem": "/workspace"
     "/Users/di/.m2/repository": "/root/.m2/repository"
-  script: "mvn clean install -DskipTests -T 1C"
+  script: "mvn clean install -DskipTests -T 1C -pl swagger-client && mvn clean install -DskipTests -T 1C"
 
 maven-dependency-check:
   stage: build
