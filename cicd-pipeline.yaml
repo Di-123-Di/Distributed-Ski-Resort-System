@@ -13,6 +13,7 @@ maven-compile:
   workingDirectory: "/workspace"
   volumeMounts:
     "/Users/di/Downloads/DistributedSkiResortSystem": "/workspace"
+    "/Users/di/.m2/repository": "/root/.m2/repository"
   script: "mvn clean install -DskipTests"
 
 maven-dependency-check:
@@ -21,6 +22,7 @@ maven-dependency-check:
   workingDirectory: "/workspace"
   volumeMounts:
     "/Users/di/Downloads/DistributedSkiResortSystem": "/workspace"
+    "/Users/di/.m2/repository": "/root/.m2/repository"
   needs: [maven-compile]
   script: "mvn dependency:tree"
 
@@ -31,6 +33,7 @@ unit-tests:
   workingDirectory: "/workspace"
   volumeMounts:
     "/Users/di/Downloads/DistributedSkiResortSystem": "/workspace"
+    "/Users/di/.m2/repository": "/root/.m2/repository"
   needs: [maven-compile]
   script: "mvn test"
 
@@ -40,6 +43,7 @@ integration-tests:
   workingDirectory: "/workspace"
   volumeMounts:
     "/Users/di/Downloads/DistributedSkiResortSystem": "/workspace"
+    "/Users/di/.m2/repository": "/root/.m2/repository"
   needs: [unit-tests]
   script: "mvn verify"
 
@@ -50,6 +54,7 @@ maven-package:
   workingDirectory: "/workspace"
   volumeMounts:
     "/Users/di/Downloads/DistributedSkiResortSystem": "/workspace"
+    "/Users/di/.m2/repository": "/root/.m2/repository"
   needs: [integration-tests]
   script: "mvn package"
 
