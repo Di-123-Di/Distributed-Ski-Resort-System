@@ -8,20 +8,20 @@ pipeline:
 # Build stage - compile and install
 maven-compile:
   stage: build
-  image: maven:3.8.6-openjdk-11
+  image: openjdk:21-jdk-slim
   workingDirectory: "/workspace"
   volumeMounts:
     "/Users/di/Downloads/DistributedSkiResortSystem": "/workspace"
     "/Users/di/.m2/repository": "/root/.m2/repository"
-  script: "mvn clean install -DskipTests -T 1C"
+  script: "apt-get update && apt-get install -y maven && mvn clean install -DskipTests -T 1C"
 
 # Test stage - run tests
 maven-test:
   stage: test
-  image: maven:3.8.6-openjdk-11
+  image: openjdk:21-jdk-slim
   workingDirectory: "/workspace"
   volumeMounts:
     "/Users/di/Downloads/DistributedSkiResortSystem": "/workspace"
     "/Users/di/.m2/repository": "/root/.m2/repository"
   needs: [maven-compile]
-  script: "mvn test"
+  script: "apt-get update && apt-get install -y maven && mvn test"
