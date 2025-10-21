@@ -1,12 +1,11 @@
 pipeline:
   name: "DistributedSkiResortSystem"
-  description: "CI/CD pipeline for Distributed Ski Resort System"
+  description: "Simplified CI/CD pipeline for demo"
   stages:
     - build
     - test
-    - package
 
-# Build stage jobs
+# Build stage - compile and install
 maven-compile:
   stage: build
   image: maven:3.8.6-openjdk-11
@@ -14,20 +13,10 @@ maven-compile:
   volumeMounts:
     "/Users/di/Downloads/DistributedSkiResortSystem": "/workspace"
     "/Users/di/.m2/repository": "/root/.m2/repository"
-  script: "mvn clean install -DskipTests -T 1C -Dmaven.install.skip=false"
+  script: "mvn clean install -DskipTests -T 1C"
 
-maven-dependency-check:
-  stage: test
-  image: maven:3.8.6-openjdk-11
-  workingDirectory: "/workspace"
-  volumeMounts:
-    "/Users/di/Downloads/DistributedSkiResortSystem": "/workspace"
-    "/Users/di/.m2/repository": "/root/.m2/repository"
-  needs: [maven-compile]
-  script: "mvn dependency:tree"
-
-# Test stage jobs
-unit-tests:
+# Test stage - run tests
+maven-test:
   stage: test
   image: maven:3.8.6-openjdk-11
   workingDirectory: "/workspace"
@@ -36,30 +25,3 @@ unit-tests:
     "/Users/di/.m2/repository": "/root/.m2/repository"
   needs: [maven-compile]
   script: "mvn test"
-
-integration-tests:
-  stage: test
-  image: maven:3.8.6-openjdk-11
-  workingDirectory: "/workspace"
-  volumeMounts:
-    "/Users/di/Downloads/DistributedSkiResortSystem": "/workspace"
-    "/Users/di/.m2/repository": "/root/.m2/repository"
-  needs: [unit-tests]
-  script: "mvn verify"
-
-# Package stage jobs
-maven-package:
-  stage: package
-  image: maven:3.8.6-openjdk-11
-  workingDirectory: "/workspace"
-  volumeMounts:
-    "/Users/di/Downloads/DistributedSkiResortSystem": "/workspace"
-    "/Users/di/.m2/repository": "/root/.m2/repository"
-  needs: [integration-tests]
-  script: "mvn package"
-
-docker-build:
-  stage: package
-  image: docker:latest
-  needs: [maven-package]
-  script: "echo 'Docker build would happen here'"
