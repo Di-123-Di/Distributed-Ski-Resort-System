@@ -13,7 +13,7 @@ maven-compile:
   workingDirectory: "/workspace"
   volumeMounts:
     "/Users/di/Downloads/DistributedSkiResortSystem": "/workspace"
-  script: "mvn clean compile -DskipTests"
+  script: "mvn clean install -DskipTests"
 
 maven-dependency-check:
   stage: build
@@ -41,7 +41,7 @@ integration-tests:
   volumeMounts:
     "/Users/di/Downloads/DistributedSkiResortSystem": "/workspace"
   needs: [unit-tests]
-  script: "mvn verify -DskipTests=false"
+  script: "mvn verify"
 
 # Package stage jobs
 maven-package:
@@ -51,7 +51,7 @@ maven-package:
   volumeMounts:
     "/Users/di/Downloads/DistributedSkiResortSystem": "/workspace"
   needs: [integration-tests]
-  script: "mvn package -DskipTests"
+  script: "mvn package"
 
 docker-build:
   stage: package
