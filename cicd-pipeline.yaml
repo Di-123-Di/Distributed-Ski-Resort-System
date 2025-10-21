@@ -17,7 +17,7 @@ maven-compile:
   script: "mvn clean install -DskipTests -T 1C -Dmaven.install.skip=false"
 
 maven-dependency-check:
-  stage: build
+  stage: test
   image: maven:3.8.6-openjdk-11
   workingDirectory: "/workspace"
   volumeMounts:
