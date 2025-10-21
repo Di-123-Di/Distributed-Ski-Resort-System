@@ -1,0 +1,102 @@
+# Invalid CI/CD Pipeline - Contains various errors for demonstration
+# This file demonstrates common validation errors
+
+pipeline:
+  name: "InvalidPipeline"
+  description: "This pipeline contains various validation errors"
+  stages:
+    - build
+    - test
+    - deploy
+    - build  # Duplicate stage name - this will cause an error
+
+# Job with missing required fields
+maven-compile:
+  stage: build
+  # Missing image field - this will cause an error
+  workingDirectory: "/workspace"
+  # Missing volumeMounts - this will cause an error
+  script: "mvn clean install"
+
+# Job with invalid stage reference
+maven-test:
+  stage: invalid-stage  # References non-existent stage - this will cause an error
+  image: openjdk:21-jdk-slim
+  workingDirectory: "/workspace"
+  volumeMounts:
+    "/Users/di/Downloads/DistributedSkiResortSystem": "/workspace"
+  needs: [maven-compile]
+  script: "mvn test"
+
+# Job with circular dependency (self-reference)
+maven-deploy:
+  stage: deploy
+  image: openjdk:21-jdk-slim
+  workingDirectory: "/workspace"
+  volumeMounts:
+    "/Users/di/Downloads/DistributedSkiResortSystem": "/workspace"
+  needs: [maven-deploy]  # Circular dependency - depends on itself
+  script: "mvn deploy"
+
+# Job with invalid dependency
+maven-integration-test:
+  stage: test
+  image: openjdk:21-jdk-slim
+  workingDirectory: "/workspace"
+  volumeMounts:
+    "/Users/di/Downloads/DistributedSkiResortSystem": "/workspace"
+  needs: [non-existent-job]  # References non-existent job - this will cause an error
+  script: "mvn integration-test"
+
+# Job with empty stage
+empty-job:
+  stage: ""  # Empty stage name - this will cause an error
+  image: openjdk:21-jdk-slim
+  workingDirectory: "/workspace"
+  script: "echo 'This job has no stage'"
+
+# Job with missing script
+no-script-job:
+  stage: test
+  image: openjdk:21-jdk-slim
+  workingDirectory: "/workspace"
+  # Missing script field - this will cause an error
+
+# Complex circular dependency chain
+job-a:
+  stage: build
+  image: openjdk:21-jdk-slim
+  workingDirectory: "/workspace"
+  needs: [job-b]  # A depends on B
+  script: "mvn compile"
+
+job-b:
+  stage: build
+  image: openjdk:21-jdk-slim
+  workingDirectory: "/workspace"
+  needs: [job-c]  # B depends on C
+  script: "mvn test"
+
+job-c:
+  stage: build
+  image: openjdk:21-jdk-slim
+  workingDirectory: "/workspace"
+  needs: [job-a]  # C depends on A - creates circular dependency: A -> B -> C -> A
+  script: "mvn package"
+
+# Job with duplicate name (this will be caught by YAML parser)
+maven-compile-duplicate:
+  stage: test
+  image: openjdk:21-jdk-slim
+  workingDirectory: "/workspace"
+  volumeMounts:
+    "/Users/di/Downloads/DistributedSkiResortSystem": "/workspace"
+  script: "mvn compile"
+
+# Job referencing itself indirectly
+self-ref-job:
+  stage: test
+  image: openjdk:21-jdk-slim
+  workingDirectory: "/workspace"
+  needs: [self-ref-job]  # Direct self-reference
+  script: "mvn test"
