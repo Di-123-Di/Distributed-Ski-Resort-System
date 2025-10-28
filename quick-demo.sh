@@ -1,10 +1,9 @@
 #!/bin/bash
 
 # =====================================================
-# Quick Report Command Demo Script
+# Report Command Demo Script - Key Features
 # =====================================================
-# Quick demonstration of report command error scenarios
-# Perfect for live demo presentations
+# Focused demonstration of report command core functionality
 # =====================================================
 
 # Colors
@@ -16,47 +15,89 @@ NC='\033[0m'
 
 CICD_CLI="/Users/di/tb-cicd/cicd"
 PROJECT_DIR="/Users/di/Downloads/DistributedSkiResortSystem"
+PIPELINE_NAME="DistributedSkiResortSystem"
 
 cd "$PROJECT_DIR"
 
-echo -e "${BLUE}🚀 CI/CD Report Command Demo${NC}"
-echo "=================================="
+echo -e "${BLUE}🚀 Report Command Demo - Key Features${NC}"
+echo "======================================"
 echo ""
 
-# Quick demo function
+# Demo function
 demo() {
     echo -e "${YELLOW}📋 $1${NC}"
     echo "Command: $2"
     echo ""
-    eval "$2"
+    eval "$2" 2>&1 || true
     echo ""
     echo "----------------------------------------"
     echo ""
 }
 
-# 1. Missing pipeline parameter
-demo "❌ Missing Required Parameter" \
+# =====================================================
+# 1. ERROR HANDLING (Most Important)
+# =====================================================
+echo -e "${RED}❌ Error Handling${NC}"
+echo "=================="
+echo ""
+
+demo "Missing Required Parameter" \
     "$CICD_CLI report"
 
-# 2. Non-existent pipeline
-demo "❌ Non-existent Pipeline" \
+demo "Non-existent Pipeline" \
     "$CICD_CLI report --pipeline \"NonExistentPipeline\""
 
-# 3. Invalid run number
-demo "❌ Invalid Run Number (0)" \
-    "$CICD_CLI report --pipeline \"DistributedSkiResortSystem\" --run 0"
+demo "Invalid Run Number" \
+    "$CICD_CLI report --pipeline \"$PIPELINE_NAME\" --run 0"
 
-# 4. Job without stage
-demo "❌ Job without Stage" \
-    "$CICD_CLI report --pipeline \"DistributedSkiResortSystem\" --job \"compile\""
+demo "Job without Stage" \
+    "$CICD_CLI report --pipeline \"$PIPELINE_NAME\" --job \"compile\""
 
-# 5. Valid command (should work if service running)
-demo "✅ Valid Pipeline Report" \
-    "$CICD_CLI report --pipeline \"DistributedSkiResortSystem\""
+# =====================================================
+# 2. MULTI-LEVEL REPORTS (Core Functionality)
+# =====================================================
+echo -e "${GREEN}✅ Multi-level Reports${NC}"
+echo "======================="
+echo ""
 
-# 6. Help command
-demo "ℹ️  Help Command" \
+demo "Pipeline Report (All Runs)" \
+    "$CICD_CLI report --pipeline \"$PIPELINE_NAME\""
+
+demo "Specific Run Report" \
+    "$CICD_CLI report --pipeline \"$PIPELINE_NAME\" --run 1"
+
+demo "Stage Report" \
+    "$CICD_CLI report --pipeline \"$PIPELINE_NAME\" --run 1 --stage \"build\""
+
+demo "Job Report" \
+    "$CICD_CLI report --pipeline \"$PIPELINE_NAME\" --run 1 --stage \"build\" --job \"maven-compile\""
+
+# =====================================================
+# 3. OUTPUT OPTIONS
+# =====================================================
+echo -e "${BLUE}🎨 Output Options${NC}"
+echo "=================="
+echo ""
+
+demo "Verbose Output" \
+    "$CICD_CLI report --pipeline \"$PIPELINE_NAME\" --verbose"
+
+demo "No Color Output" \
+    "$CICD_CLI report --pipeline \"$PIPELINE_NAME\" --no-color"
+
+# =====================================================
+# 4. HELP
+# =====================================================
+echo -e "${YELLOW}ℹ️  Help${NC}"
+echo "====="
+echo ""
+
+demo "Report Help" \
     "$CICD_CLI report --help"
 
 echo -e "${GREEN}🎯 Demo Complete!${NC}"
-echo "Perfect for showing error handling capabilities."
+echo "Key features demonstrated:"
+echo "• Error handling and validation"
+echo "• Multi-level reporting (pipeline → run → stage → job)"
+echo "• Output format options"
+echo "• Help system"
