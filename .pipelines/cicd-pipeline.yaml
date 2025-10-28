@@ -11,8 +11,7 @@ maven-compile:
   image: openjdk:21-jdk-slim
   workingDirectory: "/workspace"
   volumeMounts:
-    "/home/di/Distributed-Ski-Resort-System": "/workspace"
-    "/home/di/.m2/repository": "/root/.m2/repository"
+    "/Users/di/Downloads/DistributedSkiResortSystem": "/workspace"
   script: "apt-get update && apt-get install -y maven && mvn clean install -DskipTests -T 1C"
 
 # Test stage - run tests
@@ -21,7 +20,6 @@ maven-test:
   image: openjdk:21-jdk-slim
   workingDirectory: "/workspace"
   volumeMounts:
-    "/home/di/Distributed-Ski-Resort-System": "/workspace"
-    "/home/di/.m2/repository": "/root/.m2/repository"
+    "/Users/di/Downloads/DistributedSkiResortSystem": "/workspace"
   needs: [maven-compile]
   script: "apt-get update && apt-get install -y maven && mvn test"
