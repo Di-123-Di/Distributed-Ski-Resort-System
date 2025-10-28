@@ -79,9 +79,6 @@ echo -e "${BLUE}🎨 Output Options${NC}"
 echo "=================="
 echo ""
 
-demo "Verbose Output" \
-    "$CICD_CLI report --pipeline \"$PIPELINE_NAME\" --verbose"
-
 demo "No Color Output" \
     "$CICD_CLI report --pipeline \"$PIPELINE_NAME\" --no-color"
 
@@ -99,5 +96,5 @@ echo -e "${GREEN}🎯 Demo Complete!${NC}"
 echo "Key features demonstrated:"
 echo "• Error handling and validation"
 echo "• Multi-level reporting (pipeline → run → stage → job)"
-echo "• Output format options"
+echo "• No-color output option"
 echo "• Help system"
