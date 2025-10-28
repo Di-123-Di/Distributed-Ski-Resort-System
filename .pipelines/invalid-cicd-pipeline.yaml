@@ -14,7 +14,7 @@ maven-compile:
   image: openjdk:21-jdk-slim
   workingDirectory: "/workspace"
   volumeMounts:
-    "/Users/di/Downloads/DistributedSkiResortSystem": "/workspace"
+    "/home/di/Distributed-Ski-Resort-System": "/workspace"
   script: "mvn clean compile && exit 1"  # This will fail with exit code 1
 
 # Second job - depends on first job, will be skipped due to failure
@@ -23,6 +23,6 @@ maven-test:
   image: openjdk:21-jdk-slim
   workingDirectory: "/workspace"
   volumeMounts:
-    "/Users/di/Downloads/DistributedSkiResortSystem": "/workspace"
+    "/home/di/Distributed-Ski-Resort-System": "/workspace"
   needs: [maven-compile]
   script: "mvn test"
