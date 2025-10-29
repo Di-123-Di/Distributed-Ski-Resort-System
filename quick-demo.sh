@@ -47,11 +47,26 @@ demo "Missing Required Parameter" \
 demo "Non-existent Pipeline" \
     "$CICD_CLI report --pipeline \"NonExistentPipeline\""
 
-demo "Invalid Run Number" \
+demo "Run doesn't exist (0)" \
     "$CICD_CLI report --pipeline \"$PIPELINE_NAME\" --run 0"
 
-demo "Job without Stage" \
+demo "Run doesn't exist (negative)" \
+    "$CICD_CLI report --pipeline \"$PIPELINE_NAME\" --run -1"
+
+demo "Run doesn't exist (large)" \
+    "$CICD_CLI report --pipeline \"$PIPELINE_NAME\" --run 999"
+
+demo "Stage provided without run" \
+    "$CICD_CLI report --pipeline \"$PIPELINE_NAME\" --stage \"build\""
+
+demo "Job provided without stage" \
     "$CICD_CLI report --pipeline \"$PIPELINE_NAME\" --job \"compile\""
+
+demo "Stage not found (existing run)" \
+    "$CICD_CLI report --pipeline \"$PIPELINE_NAME\" --run 1 --stage \"unknown-stage\""
+
+demo "Job not found (existing stage)" \
+    "$CICD_CLI report --pipeline \"$PIPELINE_NAME\" --run 1 --stage \"build\" --job \"unknown-job\""
 
 # =====================================================
 # 2. MULTI-LEVEL REPORTS (Core Functionality)
