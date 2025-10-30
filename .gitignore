@@ -20,3 +20,4 @@ target/
 *.war
 *.ear
 **/.DS_Store
+erl_crash.dump
