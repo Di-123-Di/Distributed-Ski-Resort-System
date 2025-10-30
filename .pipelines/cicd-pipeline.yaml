@@ -14,6 +14,8 @@ maven-compile:
     "/Users/di/Downloads/DistributedSkiResortSystem": "/workspace"
   script: "apt-get update && apt-get install -y maven && mvn clean install -DskipTests -T 1C"
 
+# (removed) Build stage - style check to keep only 1 job in build stage
+
 # Test stage - run tests
 maven-test:
   stage: test
@@ -21,5 +23,14 @@ maven-test:
   workingDirectory: "/workspace"
   volumeMounts:
     "/Users/di/Downloads/DistributedSkiResortSystem": "/workspace"
-  needs: [maven-compile]
   script: "apt-get update && apt-get install -y maven && mvn test"
+
+# Test stage - integration tests (example)
+integration-test:
+  stage: test
+  image: openjdk:21-jdk-slim
+  workingDirectory: "/workspace"
+  volumeMounts:
+    "/Users/di/Downloads/DistributedSkiResortSystem": "/workspace"
+  needs: [maven-test]
+  script: "apt-get update && apt-get install -y maven && mvn -q -DskipUnitTests verify"
