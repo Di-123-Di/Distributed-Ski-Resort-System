@@ -8,29 +8,29 @@ pipeline:
 # Build stage - compile and install
 maven-compile:
   stage: build
-  image: openjdk:21-jdk-bookworm
+  image: maven:3.9-eclipse-temurin-21
   workingDirectory: "/workspace"
   volumeMounts:
     "/Users/di/Downloads/DistributedSkiResortSystem": "/workspace"
-  script: "apt-get update && apt-get install -y maven && mvn -B clean install -DskipTests -T 1C"
+  script: "mvn -B clean install -DskipTests -T 1C"
 
 # (removed) Build stage - style check to keep only 1 job in build stage
 
 # Test stage - run tests
 maven-test:
   stage: test
-  image: openjdk:21-jdk-bookworm
+  image: maven:3.9-eclipse-temurin-21
   workingDirectory: "/workspace"
   volumeMounts:
     "/Users/di/Downloads/DistributedSkiResortSystem": "/workspace"
-  script: "apt-get update && apt-get install -y maven && mvn -B test"
+  script: "mvn -B test"
 
 # Test stage - integration tests (example)
 integration-test:
   stage: test
-  image: openjdk:21-jdk-bookworm
+  image: maven:3.9-eclipse-temurin-21
   workingDirectory: "/workspace"
   volumeMounts:
     "/Users/di/Downloads/DistributedSkiResortSystem": "/workspace"
   needs: [maven-test]
-  script: "apt-get update && apt-get install -y maven && mvn -B -DskipUnitTests verify"
+  script: "mvn -B -DskipUnitTests verify"
