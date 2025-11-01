@@ -8,7 +8,7 @@ pipeline:
 # Build stage - compile and install
 maven-compile:
   stage: build
-  image: maven:3.9-eclipse-temurin-21
+  image: maven:3.9-eclipse-temurin-17
   workingDirectory: "/workspace"
   volumeMounts:
     "/Users/di/Downloads/DistributedSkiResortSystem": "/workspace"
@@ -19,7 +19,7 @@ maven-compile:
 # Test stage - run tests
 maven-test:
   stage: test
-  image: maven:3.9-eclipse-temurin-21
+  image: maven:3.9-eclipse-temurin-17
   workingDirectory: "/workspace"
   volumeMounts:
     "/Users/di/Downloads/DistributedSkiResortSystem": "/workspace"
@@ -28,7 +28,7 @@ maven-test:
 # Test stage - integration tests (example)
 integration-test:
   stage: test
-  image: maven:3.9-eclipse-temurin-21
+  image: maven:3.9-eclipse-temurin-17
   workingDirectory: "/workspace"
   volumeMounts:
     "/Users/di/Downloads/DistributedSkiResortSystem": "/workspace"
