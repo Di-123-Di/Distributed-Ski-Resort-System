@@ -9,7 +9,7 @@ maven-compile:
   stage: build
   image: maven:3.9-eclipse-temurin-17
   script:
-    - rm -rf /workspace
+    - rm -rf /workspace/* /workspace/.[^.]* 2>/dev/null || true
     - git clone https://github.com/Di-123-Di/Distributed-Ski-Resort-System.git /workspace
     - cd /workspace
     - mvn -B clean install -DskipTests -T 1C
@@ -19,7 +19,7 @@ maven-test:
   stage: test
   image: maven:3.9-eclipse-temurin-17
   script:
-    - rm -rf /workspace
+    - rm -rf /workspace/* /workspace/.[^.]* 2>/dev/null || true
     - git clone https://github.com/Di-123-Di/Distributed-Ski-Resort-System.git /workspace
     - cd /workspace
     - mvn -B test
@@ -29,7 +29,7 @@ integration-test:
   stage: test
   image: maven:3.9-eclipse-temurin-17
   script:
-    - rm -rf /workspace
+    - rm -rf /workspace/* /workspace/.[^.]* 2>/dev/null || true
     - git clone https://github.com/Di-123-Di/Distributed-Ski-Resort-System.git /workspace
     - cd /workspace
     - mvn -B -DskipUnitTests verify
