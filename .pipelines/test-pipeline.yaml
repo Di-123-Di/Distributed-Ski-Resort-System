@@ -1,0 +1,34 @@
+pipeline:
+  name: "DistributedSkiResortSystem"
+  description: "CI/CD pipeline for demo"
+  stages:
+    - build
+    - test
+
+maven-compile:
+  stage: build
+  image: maven:3.9-eclipse-temurin-17
+  script:
+    - git clone https://github.com/Di-123-Di/Distributed-Ski-Resort-System.git /workspace
+    - cd /workspace
+    - mvn -B clean install -DskipTests -T 1C
+  needs: []
+
+maven-test:
+  stage: test
+  image: maven:3.9-eclipse-temurin-17
+  script:
+    - git clone https://github.com/Di-123-Di/Distributed-Ski-Resort-System.git /workspace
+    - cd /workspace
+    - mvn -B test
+  needs: [maven-compile]
+
+integration-test:
+  stage: test
+  image: maven:3.9-eclipse-temurin-17
+  script:
+    - git clone https://github.com/Di-123-Di/Distributed-Ski-Resort-System.git /workspace
+    - cd /workspace
+    - mvn -B -DskipUnitTests verify
+  needs: [maven-test]
+
