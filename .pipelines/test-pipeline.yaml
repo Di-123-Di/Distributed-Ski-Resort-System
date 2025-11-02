@@ -21,7 +21,7 @@ maven-test:
     - git clone https://github.com/Di-123-Di/Distributed-Ski-Resort-System.git /workspace
     - cd /workspace
     - mvn -B test
-  needs: [maven-compile]
+  needs: []
 
 integration-test:
   stage: test
