@@ -1,9 +1,11 @@
 pipeline:
   name: "DistributedSkiResortSystem"
   description: "Simplified CI/CD pipeline for demo"
-  stages:
-    - build
-    - test
+
+stages:
+  - build
+  - test
+  - deploy
 
 # Build stage - compile and install
 maven-compile:
@@ -14,23 +16,70 @@ maven-compile:
     "/Users/di/Downloads/DistributedSkiResortSystem": "/workspace"
   script: "mvn -B clean install -DskipTests -T 1C"
 
-# (removed) Build stage - style check to keep only 1 job in build stage
+# Build stage - code style check (no dependencies, can run in parallel with maven-compile)
+style-check:
+  stage: build
+  image: maven:3.9-eclipse-temurin-17
+  workingDirectory: "/workspace"
+  volumeMounts:
+    "/Users/di/Downloads/DistributedSkiResortSystem": "/workspace"
+  script: "mvn -B checkstyle:check"
 
-# Test stage - run tests
+# Build stage - dependency check (no dependencies, can run in parallel with maven-compile)
+dependency-check:
+  stage: build
+  image: maven:3.9-eclipse-temurin-17
+  workingDirectory: "/workspace"
+  volumeMounts:
+    "/Users/di/Downloads/DistributedSkiResortSystem": "/workspace"
+  script: "mvn -B dependency:analyze"
+
+# Test stage - unit tests (depends on maven-compile)
 maven-test:
   stage: test
   image: maven:3.9-eclipse-temurin-17
   workingDirectory: "/workspace"
   volumeMounts:
     "/Users/di/Downloads/DistributedSkiResortSystem": "/workspace"
+  needs: [maven-compile]
   script: "mvn -B test"
 
-# Test stage - integration tests (example)
+# Test stage - integration tests (depends on maven-compile, can run in parallel with maven-test)
 integration-test:
   stage: test
   image: maven:3.9-eclipse-temurin-17
   workingDirectory: "/workspace"
   volumeMounts:
     "/Users/di/Downloads/DistributedSkiResortSystem": "/workspace"
-  needs: [maven-test]
+  needs: [maven-compile]
   script: "mvn -B -DskipUnitTests verify"
+
+# Test stage - code coverage (depends on maven-compile, can run in parallel with maven-test and integration-test)
+coverage-test:
+  stage: test
+  image: maven:3.9-eclipse-temurin-17
+  workingDirectory: "/workspace"
+  volumeMounts:
+    "/Users/di/Downloads/DistributedSkiResortSystem": "/workspace"
+  needs: [maven-compile]
+  script: "mvn -B test jacoco:report"
+
+# Test stage - security scan (depends on maven-compile, can run in parallel with other test jobs)
+security-scan:
+  stage: test
+  image: maven:3.9-eclipse-temurin-17
+  workingDirectory: "/workspace"
+  volumeMounts:
+    "/Users/di/Downloads/DistributedSkiResortSystem": "/workspace"
+  needs: [maven-compile]
+  script: "mvn -B org.owasp:dependency-check-maven:check"
+
+# Deploy stage - package deployment (depends on all test jobs)
+deploy:
+  stage: deploy
+  image: maven:3.9-eclipse-temurin-17
+  workingDirectory: "/workspace"
+  volumeMounts:
+    "/Users/di/Downloads/DistributedSkiResortSystem": "/workspace"
+  needs: [maven-test, integration-test, coverage-test, security-scan]
+  script: "mvn -B deploy -DskipTests"
