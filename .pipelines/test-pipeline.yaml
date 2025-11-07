@@ -49,58 +49,51 @@ findbugs-check:
   workingDirectory: "/workspace"
   script: "mvn -B findbugs:check"
 
-# Test stage - unit tests (depends on maven-compile)
+# Test stage - unit tests (no dependencies, can run in parallel with other test jobs)
 maven-test:
   stage: test
   image: maven:3.9-eclipse-temurin-17
   workingDirectory: "/workspace"
-  needs: [maven-compile]
   script: "mvn -B test"
 
-# Test stage - integration tests (depends on maven-compile, can run in parallel with maven-test)
+# Test stage - integration tests (no dependencies, can run in parallel with maven-test)
 integration-test:
   stage: test
   image: maven:3.9-eclipse-temurin-17
   workingDirectory: "/workspace"
-  needs: [maven-compile]
   script: "mvn -B -DskipUnitTests verify"
 
-# Test stage - code coverage (depends on maven-compile, can run in parallel with maven-test and integration-test)
+# Test stage - code coverage (no dependencies, can run in parallel with other test jobs)
 coverage-test:
   stage: test
   image: maven:3.9-eclipse-temurin-17
   workingDirectory: "/workspace"
-  needs: [maven-compile]
   script: "mvn -B test jacoco:report"
 
-# Test stage - security scan (depends on maven-compile, can run in parallel with other test jobs)
+# Test stage - security scan (no dependencies, can run in parallel with other test jobs)
 security-scan:
   stage: test
   image: maven:3.9-eclipse-temurin-17
   workingDirectory: "/workspace"
-  needs: [maven-compile]
   script: "mvn -B org.owasp:dependency-check-maven:check"
 
-# Test stage - mutation testing (depends on maven-compile, can run in parallel with other test jobs)
+# Test stage - mutation testing (no dependencies, can run in parallel with other test jobs)
 mutation-test:
   stage: test
   image: maven:3.9-eclipse-temurin-17
   workingDirectory: "/workspace"
-  needs: [maven-compile]
   script: "mvn -B org.pitest:pitest-maven:mutationCoverage"
 
-# Test stage - performance test (depends on maven-compile, can run in parallel with other test jobs)
+# Test stage - performance test (no dependencies, can run in parallel with other test jobs)
 performance-test:
   stage: test
   image: maven:3.9-eclipse-temurin-17
   workingDirectory: "/workspace"
-  needs: [maven-compile]
   script: "mvn -B jmeter:jmeter"
 
-# Deploy stage - package deployment (depends on all test jobs)
+# Deploy stage - package deployment (no dependencies)
 deploy:
   stage: deploy
   image: maven:3.9-eclipse-temurin-17
   workingDirectory: "/workspace"
-  needs: [maven-test, integration-test, coverage-test, security-scan]
   script: "mvn -B deploy -DskipTests"
