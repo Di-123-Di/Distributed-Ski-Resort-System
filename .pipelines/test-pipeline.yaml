@@ -1,27 +1,106 @@
 pipeline:
   name: "DistributedSkiResortSystem"
   description: "CI/CD pipeline for demo"
-  stages:
-    - build
-    - test
 
+stages:
+  - build
+  - test
+  - deploy
+
+# Build stage - compile and install
 maven-compile:
   stage: build
   image: maven:3.9-eclipse-temurin-17
-  script:
-    - rm -rf /workspace/source 2>/dev/null || true
-    - git clone https://github.com/Di-123-Di/Distributed-Ski-Resort-System.git /workspace/source
-    - cd /workspace/source
-    - mvn -B clean install -DskipTests -T 1C
-  needs: []
+  workingDirectory: "/workspace/source"
+  script: "mvn -B clean install -DskipTests -T 1C"
 
+# Build stage - code style check (no dependencies, can run in parallel with maven-compile)
+style-check:
+  stage: build
+  image: maven:3.9-eclipse-temurin-17
+  workingDirectory: "/workspace/source"
+  script: "mvn -B checkstyle:check"
+
+# Build stage - dependency check (no dependencies, can run in parallel with maven-compile)
+dependency-check:
+  stage: build
+  image: maven:3.9-eclipse-temurin-17
+  workingDirectory: "/workspace/source"
+  script: "mvn -B dependency:analyze"
+
+# Build stage - spotbugs check (no dependencies, can run in parallel with other build jobs)
+spotbugs-check:
+  stage: build
+  image: maven:3.9-eclipse-temurin-17
+  workingDirectory: "/workspace/source"
+  script: "mvn -B spotbugs:check"
+
+# Build stage - PMD check (no dependencies, can run in parallel with other build jobs)
+pmd-check:
+  stage: build
+  image: maven:3.9-eclipse-temurin-17
+  workingDirectory: "/workspace/source"
+  script: "mvn -B pmd:check"
+
+# Build stage - findbugs check (no dependencies, can run in parallel with other build jobs)
+findbugs-check:
+  stage: build
+  image: maven:3.9-eclipse-temurin-17
+  workingDirectory: "/workspace/source"
+  script: "mvn -B findbugs:check"
+
+# Test stage - unit tests (depends on maven-compile)
 maven-test:
   stage: test
   image: maven:3.9-eclipse-temurin-17
-  script:
-    - rm -rf /workspace/source 2>/dev/null || true
-    - git clone https://github.com/Di-123-Di/Distributed-Ski-Resort-System.git /workspace/source
-    - cd /workspace/source
-    - mvn -B test
-  needs: []
+  workingDirectory: "/workspace/source"
+  needs: [maven-compile]
+  script: "mvn -B test"
 
+# Test stage - integration tests (depends on maven-compile, can run in parallel with maven-test)
+integration-test:
+  stage: test
+  image: maven:3.9-eclipse-temurin-17
+  workingDirectory: "/workspace/source"
+  needs: [maven-compile]
+  script: "mvn -B -DskipUnitTests verify"
+
+# Test stage - code coverage (depends on maven-compile, can run in parallel with maven-test and integration-test)
+coverage-test:
+  stage: test
+  image: maven:3.9-eclipse-temurin-17
+  workingDirectory: "/workspace/source"
+  needs: [maven-compile]
+  script: "mvn -B test jacoco:report"
+
+# Test stage - security scan (depends on maven-compile, can run in parallel with other test jobs)
+security-scan:
+  stage: test
+  image: maven:3.9-eclipse-temurin-17
+  workingDirectory: "/workspace/source"
+  needs: [maven-compile]
+  script: "mvn -B org.owasp:dependency-check-maven:check"
+
+# Test stage - mutation testing (depends on maven-compile, can run in parallel with other test jobs)
+mutation-test:
+  stage: test
+  image: maven:3.9-eclipse-temurin-17
+  workingDirectory: "/workspace/source"
+  needs: [maven-compile]
+  script: "mvn -B org.pitest:pitest-maven:mutationCoverage"
+
+# Test stage - performance test (depends on maven-compile, can run in parallel with other test jobs)
+performance-test:
+  stage: test
+  image: maven:3.9-eclipse-temurin-17
+  workingDirectory: "/workspace/source"
+  needs: [maven-compile]
+  script: "mvn -B jmeter:jmeter"
+
+# Deploy stage - package deployment (depends on all test jobs)
+deploy:
+  stage: deploy
+  image: maven:3.9-eclipse-temurin-17
+  workingDirectory: "/workspace/source"
+  needs: [maven-test, integration-test, coverage-test, security-scan]
+  script: "mvn -B deploy -DskipTests"
