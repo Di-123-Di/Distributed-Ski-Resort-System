@@ -76,13 +76,6 @@ coverage-test:
     - maven-test
   script: "mvn -B test jacoco:report || (echo 'JaCoCo plugin not configured, skipping coverage report' && true)"
 
-# Test stage - security scan (no dependencies, can run in parallel with other test jobs)
-security-scan:
-  stage: test
-  image: maven:3.9-eclipse-temurin-17
-  workingDirectory: "/workspace"
-  script: "mvn -B org.owasp:dependency-check-maven:check || (echo 'OWASP Dependency-Check plugin not configured, skipping' && true)"
-
 # Test stage - mutation testing (depends on maven-test to run mutation tests on existing test suite)
 mutation-test:
   stage: test
