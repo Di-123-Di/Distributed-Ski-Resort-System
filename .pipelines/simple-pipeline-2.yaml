@@ -1,0 +1,22 @@
+pipeline:
+  name: "simple-pipeline-2"
+  description: "Simple test pipeline with build and deploy stages"
+
+stages:
+  - build
+  - deploy
+
+# Build stage - simple compilation
+build-job:
+  stage: build
+  image: maven:3.9-eclipse-temurin-17
+  workingDirectory: "/workspace"
+  script: "mvn -B clean package -DskipTests"
+
+# Deploy stage - simple deployment
+deploy-job:
+  stage: deploy
+  image: maven:3.9-eclipse-temurin-17
+  workingDirectory: "/workspace"
+  script: "echo 'Deployment completed'"
+
