@@ -1,0 +1,46 @@
+pipeline:
+  name: "fail-test-pipeline"
+  description: "Test pipeline to verify behavior when first stage fails"
+
+stages:
+  - build
+  - test
+  - deploy
+
+# Build stage - this job will fail intentionally
+failing-job:
+  stage: build
+  image: maven:3.9-eclipse-temurin-17
+  workingDirectory: "/workspace"
+  script: "echo 'This job will fail' && exit 1"
+
+# Build stage - this job should not run if failing-job fails
+build-job:
+  stage: build
+  image: maven:3.9-eclipse-temurin-17
+  workingDirectory: "/workspace"
+  script: "mvn -B clean compile -DskipTests"
+  needs:
+    - failing-job
+
+# Build stage - parallel job (should also be skipped)
+parallel-build-job:
+  stage: build
+  image: maven:3.9-eclipse-temurin-17
+  workingDirectory: "/workspace"
+  script: "echo 'This should be skipped' && mvn -B version"
+
+# Test stage - should not run if build stage fails
+test-job:
+  stage: test
+  image: maven:3.9-eclipse-temurin-17
+  workingDirectory: "/workspace"
+  script: "mvn -B test"
+
+# Deploy stage - should not run if build stage fails
+deploy-job:
+  stage: deploy
+  image: maven:3.9-eclipse-temurin-17
+  workingDirectory: "/workspace"
+  script: "echo 'This should not run' && mvn -B deploy -DskipTests"
+
