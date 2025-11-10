@@ -2,7 +2,7 @@ pipeline:
   name: "DistributedSkiResortSystem"
   description: "CI/CD pipeline for demo"
 
-  stages:
+stages:
     - build
     - test
     - deploy
