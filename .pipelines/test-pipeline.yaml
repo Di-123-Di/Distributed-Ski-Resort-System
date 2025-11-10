@@ -2,10 +2,10 @@ pipeline:
   name: "DistributedSkiResortSystem"
   description: "CI/CD pipeline for demo"
 
-stages:
-  - build
-  - test
-  - deploy
+  stages:
+    - build
+    - test
+    - deploy
 
 # Build stage - compile and install
 maven-compile:
