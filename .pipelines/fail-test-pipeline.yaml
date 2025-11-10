@@ -28,7 +28,7 @@ parallel-build-job:
   stage: build
   image: maven:3.9-eclipse-temurin-17
   workingDirectory: "/workspace"
-  script: "echo 'This should be skipped' && mvn -B version"
+  script: "echo 'This should be skipped' && mvn -B --version"
 
 # Test stage - should not run if build stage fails
 test-job:
