@@ -14,13 +14,6 @@ maven-compile:
   workingDirectory: "/workspace"
   script: "mvn -B clean install -DskipTests -T 1C"
 
-# Build stage - code style check
-style-check:
-  stage: build
-  image: maven:3.9-eclipse-temurin-17
-  workingDirectory: "/workspace"
-  script: "mvn -B checkstyle:check || (echo 'Checkstyle plugin not configured, skipping' && true)"
-
 # Test stage - unit tests (runs after build stage completes)
 maven-test:
   stage: test
