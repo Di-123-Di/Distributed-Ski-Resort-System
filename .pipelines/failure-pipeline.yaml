@@ -40,20 +40,16 @@ build-job:
     - failing-compile
   script: "mvn -B clean compile -DskipTests"
 
-# Test stage - should not run if build stage fails
+# Test stage - should not run if build stage fails (runs after build stage completes)
 test-job:
   stage: test
   image: maven:3.9-eclipse-temurin-17
   workingDirectory: "/workspace"
-  needs:
-    - build-job
   script: "mvn -B test"
 
-# Deploy stage - should not run if build stage fails
+# Deploy stage - should not run if build stage fails (runs after test stage completes)
 deploy-job:
   stage: deploy
   image: maven:3.9-eclipse-temurin-17
   workingDirectory: "/workspace"
-  needs:
-    - build-job
   script: "mvn -B deploy -DskipTests"
