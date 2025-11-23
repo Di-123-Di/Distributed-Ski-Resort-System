@@ -1,0 +1,36 @@
+pipeline:
+  name: artifacts-failure-pipeline
+  description: Example pipeline demonstrating failed job - artifacts will NOT be uploaded
+
+stages:
+  - build
+  - test
+
+# Compile job - intentionally fails compilation to demonstrate artifacts are NOT uploaded on failure
+compile-fail:
+  - stage: build
+  - image: maven:3.8.6-openjdk-8
+  - workingDirectory: "/workspace"
+  - script:
+    - echo "Attempting to compile Maven project..."
+    - echo "Introducing compilation error to cause build failure..."
+    - mkdir -p server-servlet/src/main/java/ski/servlet
+    - echo "public class BrokenClass { invalid syntax here" > server-servlet/src/main/java/ski/servlet/BrokenClass.java
+    - mvn clean compile -DskipTests
+    - echo "This line should not be reached if compilation fails"
+  - artifacts:
+    - "**/target/classes/"
+    - README.md
+
+# Test job - will be skipped because compile-fail failed (pipeline fails)
+test-skip:
+  - stage: test
+  - image: maven:3.8.6-openjdk-8
+  - workingDirectory: "/workspace"
+  - script:
+    - echo "This job will be skipped because compile-fail failed"
+    - echo "No artifacts will be available from compile-fail"
+    - mvn test
+  - artifacts:
+    - target/surefire-reports/
+

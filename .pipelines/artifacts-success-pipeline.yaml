@@ -1,0 +1,68 @@
+pipeline:
+  name: artifacts-success-pipeline
+  description: Example pipeline demonstrating successful artifact upload with real Maven build
+
+stages:
+  - build
+  - test
+  - package
+  - deploy
+
+# Compile job - compiles all Maven modules
+compile:
+  - stage: build
+  - image: maven:3.8.6-openjdk-8
+  - workingDirectory: "/workspace"
+  - script:
+    - echo "Compiling Maven project..."
+    - mvn clean compile -DskipTests
+    - echo "Compilation completed successfully"
+  - artifacts:
+    - "**/target/classes/"
+    - README.md
+
+# Test job - runs unit tests and generates test reports
+test:
+  - stage: test
+  - image: maven:3.8.6-openjdk-8
+  - workingDirectory: "/workspace"
+  - script:
+    - echo "Running Maven tests..."
+    - mvn test
+    - echo "Tests completed successfully"
+  - artifacts:
+    - target/surefire-reports/
+    - target/surefire-reports/*.xml
+    - target/surefire-reports/*.txt
+
+# Package job - creates JAR and WAR files
+package:
+  - stage: package
+  - image: maven:3.8.6-openjdk-8
+  - workingDirectory: "/workspace"
+  - script:
+    - echo "Packaging Maven project..."
+    - mvn package -DskipTests
+    - echo "Packaging completed successfully"
+  - artifacts:
+    - "**/target/*.jar"
+    - "**/target/*.war"
+    - "**/target/*-executable.war"
+    - "**/target/*-jar-with-dependencies.jar"
+
+# Deploy job - creates distribution artifacts
+deploy:
+  - stage: deploy
+  - image: maven:3.8.6-openjdk-8
+  - workingDirectory: "/workspace"
+  - script:
+    - echo "Preparing deployment artifacts..."
+    - mkdir -p dist
+    - find . -name "*.jar" -path "*/target/*" -exec cp {} dist/ \;
+    - find . -name "*.war" -path "*/target/*" -exec cp {} dist/ \;
+    - echo "Deployment artifacts prepared"
+  - artifacts:
+    - dist/
+    - dist/*.jar
+    - dist/*.war
+
