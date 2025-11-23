@@ -17,12 +17,11 @@ maven-compile:
     - echo "Compilation completed successfully"
 
 # Test job - runs unit tests successfully
+# Note: This job will automatically run after the build stage completes
 maven-test:
   - stage: test
   - image: maven:3.8.6-openjdk-8
   - workingDirectory: "/workspace"
-  - needs:
-    - maven-compile
   - script:
     - echo "Running Maven tests..."
     - mvn test

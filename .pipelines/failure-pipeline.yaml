@@ -20,12 +20,11 @@ failing-compile:
     - echo "This line should not be reached if compilation fails"
 
 # Test job - will be skipped because failing-compile failed (pipeline fails fast)
+# Note: This job will be skipped automatically when the build stage fails
 skipped-test:
   - stage: test
   - image: maven:3.8.6-openjdk-8
   - workingDirectory: "/workspace"
-  - needs:
-    - failing-compile
   - script:
     - echo "This job will be skipped because failing-compile failed"
     - echo "No artifacts will be available from failing-compile"
