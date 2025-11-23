@@ -1,0 +1,30 @@
+pipeline:
+  name: success-pipeline
+  description: Example pipeline demonstrating successful execution with real Maven build
+
+stages:
+  - build
+  - test
+
+# Compile job - compiles all Maven modules successfully
+maven-compile:
+  - stage: build
+  - image: maven:3.8.6-openjdk-8
+  - workingDirectory: "/workspace"
+  - script:
+    - echo "Compiling Maven project..."
+    - mvn clean compile -DskipTests
+    - echo "Compilation completed successfully"
+
+# Test job - runs unit tests successfully
+maven-test:
+  - stage: test
+  - image: maven:3.8.6-openjdk-8
+  - workingDirectory: "/workspace"
+  - needs:
+    - maven-compile
+  - script:
+    - echo "Running Maven tests..."
+    - mvn test
+    - echo "Tests completed successfully"
+

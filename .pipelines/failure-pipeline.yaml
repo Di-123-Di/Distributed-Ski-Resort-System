@@ -1,0 +1,33 @@
+pipeline:
+  name: failure-pipeline
+  description: Example pipeline demonstrating failed job execution with real compilation errors
+
+stages:
+  - build
+  - test
+
+# Compile job - intentionally fails compilation to demonstrate error handling
+failing-compile:
+  - stage: build
+  - image: maven:3.8.6-openjdk-8
+  - workingDirectory: "/workspace"
+  - script:
+    - echo "Attempting to compile Maven project..."
+    - echo "Introducing compilation error to cause build failure..."
+    - mkdir -p server-servlet/src/main/java/ski/servlet
+    - echo "public class BrokenClass { invalid syntax here" > server-servlet/src/main/java/ski/servlet/BrokenClass.java
+    - mvn clean compile -DskipTests
+    - echo "This line should not be reached if compilation fails"
+
+# Test job - will be skipped because failing-compile failed (pipeline fails fast)
+skipped-test:
+  - stage: test
+  - image: maven:3.8.6-openjdk-8
+  - workingDirectory: "/workspace"
+  - needs:
+    - failing-compile
+  - script:
+    - echo "This job will be skipped because failing-compile failed"
+    - echo "No artifacts will be available from failing-compile"
+    - mvn test
+
