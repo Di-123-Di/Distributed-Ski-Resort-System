@@ -12,13 +12,13 @@ stages:
 compile:
   - stage: build
   - image: maven:3.8.6-openjdk-8
-  - workingDirectory: "/workspace"
   - script:
     - echo "Compiling Maven project..."
     - mvn clean compile -DskipTests
     - echo "Compilation completed successfully"
   - artifacts:
     # Example 1: A file, by providing a file name
+    # Note: CLI auto-injects git clone directly to /workspace
     - README.md
     - pom.xml
 
@@ -26,7 +26,6 @@ compile:
 test:
   - stage: test
   - image: maven:3.8.6-openjdk-8
-  - workingDirectory: "/workspace"
   - script:
     - echo "Running Maven tests..."
     - mvn test
@@ -43,7 +42,6 @@ test:
 package:
   - stage: package
   - image: maven:3.8.6-openjdk-8
-  - workingDirectory: "/workspace"
   - script:
     - echo "Packaging Maven project..."
     - mvn package -DskipTests
@@ -53,15 +51,12 @@ package:
     - "**/*.jar"  # All JAR files at any depth
     - "**/*.war"  # All WAR files at any depth
     # Example 3a.iii: Single star in directory path (one level only)
-    # This would match: target/classes/*, target/test-classes/*, etc.
-    # but NOT target/classes/com/company/* (too deep)
     - "*/target/*.jar"  # JAR files in target dirs one level down
 
 # Deploy job - demonstrates directory patterns with wildcards
 deploy:
   - stage: deploy
   - image: maven:3.8.6-openjdk-8
-  - workingDirectory: "/workspace"
   - script:
     - echo "Preparing deployment artifacts..."
     - mkdir -p dist/libs
