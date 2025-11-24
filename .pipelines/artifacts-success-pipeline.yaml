@@ -8,7 +8,7 @@ stages:
   - package
   - deploy
 
-# Compile job - compiles all Maven modules
+# Compile job - demonstrates single file pattern
 compile:
   - stage: build
   - image: maven:3.8.6-openjdk-8
@@ -18,10 +18,11 @@ compile:
     - mvn clean compile -DskipTests
     - echo "Compilation completed successfully"
   - artifacts:
-    - "**/target/classes/"
+    # Example 1: A file, by providing a file name
     - README.md
+    - pom.xml
 
-# Test job - runs unit tests and generates test reports
+# Test job - demonstrates directory and simple star patterns
 test:
   - stage: test
   - image: maven:3.8.6-openjdk-8
@@ -31,11 +32,14 @@ test:
     - mvn test
     - echo "Tests completed successfully"
   - artifacts:
-    - target/surefire-reports/
-    - target/surefire-reports/*.xml
-    - target/surefire-reports/*.txt
+    # Example 2: A directory (recursively uploads all contents)
+    # Note: Using consumer module as example since it has clear structure
+    - consumer/target/surefire-reports/
+    # Example 3a: Star for any match
+    - consumer/target/*.jar  # All JAR files in target
+    - "*.xml"  # All XML files (pom.xml, etc.)
 
-# Package job - creates JAR and WAR files
+# Package job - demonstrates double star pattern (any depth)
 package:
   - stage: package
   - image: maven:3.8.6-openjdk-8
@@ -45,24 +49,34 @@ package:
     - mvn package -DskipTests
     - echo "Packaging completed successfully"
   - artifacts:
-    - "**/target/*.jar"
-    - "**/target/*.war"
-    - "**/target/*-executable.war"
-    - "**/target/*-jar-with-dependencies.jar"
+    # Example 3b: Double star for any depth
+    - "**/*.jar"  # All JAR files at any depth
+    - "**/*.war"  # All WAR files at any depth
+    # Example 3a.iii: Single star in directory path (one level only)
+    # This would match: target/classes/*, target/test-classes/*, etc.
+    # but NOT target/classes/com/company/* (too deep)
+    - "*/target/*.jar"  # JAR files in target dirs one level down
 
-# Deploy job - creates distribution artifacts
+# Deploy job - demonstrates directory patterns with wildcards
 deploy:
   - stage: deploy
   - image: maven:3.8.6-openjdk-8
   - workingDirectory: "/workspace"
   - script:
     - echo "Preparing deployment artifacts..."
-    - mkdir -p dist
-    - find . -name "*.jar" -path "*/target/*" -exec cp {} dist/ \;
-    - find . -name "*.war" -path "*/target/*" -exec cp {} dist/ \;
+    - mkdir -p dist/libs
+    - mkdir -p dist/docs
+    - mkdir -p consumer/target/generated-docs
+    - find . -name "*.jar" -path "*/target/*" -exec cp {} dist/libs/ \;
+    - find . -name "*.war" -path "*/target/*" -exec cp {} dist/libs/ \;
+    - echo "Sample doc" > dist/docs/README.txt
+    - echo "Generated" > consumer/target/generated-docs/api.html
     - echo "Deployment artifacts prepared"
   - artifacts:
-    - dist/
-    - dist/*.jar
-    - dist/*.war
+    # Example 2: Directory with trailing /
+    - dist/  # Uploads entire dist directory recursively
+    # Example 3a.iii: Single star directory pattern (one level away)
+    - "dist/*/README.txt"  # Matches dist/docs/README.txt (one level)
+    # Example 3b.i: Double star directory pattern (any depth)
+    - "**/target/generated-docs/"  # All generated-docs dirs at any depth
 
