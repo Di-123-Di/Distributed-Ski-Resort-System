@@ -12,8 +12,8 @@ compile:
   - stage: build
   - image: maven:3.8.6-openjdk-8
   - script:
-    - echo "Compiling consumer module only (fast)..."
-    - mvn clean compile -DskipTests -pl consumer -am
+    - echo "Compiling server-spring module only (fast)..."
+    - mvn clean compile -DskipTests -pl server-spring -am
     - echo "Compilation completed"
   - artifacts:
     # Pattern 1: Single file by name (real project files)
@@ -26,15 +26,14 @@ test:
   - stage: test
   - image: maven:3.8.6-openjdk-8
   - script:
-    - echo "Running tests and packaging consumer module only..."
-    - mvn test -pl consumer
-    - mvn package -DskipTests -pl consumer
-    - echo "Test and package completed"
+    - echo "Packaging server-spring module only..."
+    - mvn package -DskipTests -pl server-spring -am
+    - echo "Package completed"
   - artifacts:
-    # Pattern 2: Directory (real test reports)
-    - consumer/target/surefire-reports/
-    # Pattern 3a: Single star (real JAR files)
-    - consumer/target/*.jar
-    # Pattern 3b: Double star (any depth - finds all XML files)
-    - "**/*.xml"
+    # Pattern 2: Directory (real build output)
+    - server-spring/target/classes/
+    # Pattern 3a: Single star (real JAR files at one level)
+    - server-spring/target/*.jar
+    # Pattern 3b: Double star (any depth - finds all nested Java files)
+    - "server-spring/**/neu/**/*.java"
 
