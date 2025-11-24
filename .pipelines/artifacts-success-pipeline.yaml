@@ -1,54 +1,40 @@
 pipeline:
   name: artifacts-success-pipeline
-  description: Simplified pipeline demonstrating 3 artifact pattern types
+  description: Simplified pipeline demonstrating 3 artifact pattern types with real files
 
 stages:
   - build
   - test
 
 # Job 1: Test single file and directory patterns
-test-basic:
+# Uses real project files (README.md, pom.xml) and real Maven compilation
+compile:
   - stage: build
-  - image: alpine:latest
+  - image: maven:3.8.6-openjdk-8
   - script:
-    - echo "Creating test files and directories..."
-    # Create single files
-    - echo "Main readme" > README.md
-    - echo "Config file" > config.xml
-    # Create a directory structure
-    - mkdir -p build/output
-    - echo "Build artifact 1" > build/output/app.jar
-    - echo "Build artifact 2" > build/output/lib.jar
-    - echo "Build log" > build/build.log
-    - echo "Test files created"
+    - echo "Compiling consumer module only (fast)..."
+    - mvn clean compile -DskipTests -pl consumer -am
+    - echo "Compilation completed"
   - artifacts:
-    # Pattern 1: Single file by name
+    # Pattern 1: Single file by name (real project files)
     - README.md
-    - config.xml
-    # Pattern 2: Directory (recursive)
-    - build/
+    - pom.xml
 
-# Job 2: Test star patterns (* and **)
-test-patterns:
+# Job 2: Test directory and star patterns
+# Uses real Maven test reports and JAR files
+test:
   - stage: test
-  - image: alpine:latest
+  - image: maven:3.8.6-openjdk-8
   - script:
-    - echo "Creating files for pattern matching..."
-    # Create files for single star pattern
-    - mkdir -p app/target
-    - mkdir -p lib/target
-    - echo "app jar" > app/target/app.jar
-    - echo "lib jar" > lib/target/lib.jar
-    - echo "app log" > app/target/test.log
-    # Create nested structure for double star pattern
-    - mkdir -p deep/nested/dir/docs
-    - echo "doc1" > deep/doc.txt
-    - echo "doc2" > deep/nested/doc.txt
-    - echo "doc3" > deep/nested/dir/docs/doc.txt
-    - echo "Pattern test files created"
+    - echo "Running tests and packaging consumer module only..."
+    - mvn test -pl consumer
+    - mvn package -DskipTests -pl consumer
+    - echo "Test and package completed"
   - artifacts:
-    # Pattern 3a: Single star (one level)
-    - "*/target/*.jar"  # Matches app/target/app.jar, lib/target/lib.jar
-    # Pattern 3b: Double star (any depth)
-    - "**/doc.txt"  # Matches all doc.txt at any depth
+    # Pattern 2: Directory (real test reports)
+    - consumer/target/surefire-reports/
+    # Pattern 3a: Single star (real JAR files)
+    - consumer/target/*.jar
+    # Pattern 3b: Double star (any depth - finds all XML files)
+    - "**/*.xml"
 
