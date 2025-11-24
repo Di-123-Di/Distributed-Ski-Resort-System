@@ -1,77 +1,54 @@
 pipeline:
   name: artifacts-success-pipeline
-  description: Example pipeline demonstrating successful artifact upload with real Maven build
+  description: Simplified pipeline demonstrating 3 artifact pattern types
 
 stages:
   - build
   - test
-  - package
-  - deploy
 
-# Compile job - demonstrates single file pattern
-compile:
+# Job 1: Test single file and directory patterns
+test-basic:
   - stage: build
-  - image: maven:3.8.6-openjdk-8
+  - image: alpine:latest
   - script:
-    - echo "Compiling Maven project..."
-    - mvn clean compile -DskipTests
-    - echo "Compilation completed successfully"
+    - echo "Creating test files and directories..."
+    # Create single files
+    - echo "Main readme" > README.md
+    - echo "Config file" > config.xml
+    # Create a directory structure
+    - mkdir -p build/output
+    - echo "Build artifact 1" > build/output/app.jar
+    - echo "Build artifact 2" > build/output/lib.jar
+    - echo "Build log" > build/build.log
+    - echo "Test files created"
   - artifacts:
-    # Example 1: A file, by providing a file name
-    # Note: CLI auto-injects git clone directly to /workspace
+    # Pattern 1: Single file by name
     - README.md
-    - pom.xml
+    - config.xml
+    # Pattern 2: Directory (recursive)
+    - build/
 
-# Test job - demonstrates directory and simple star patterns
-test:
+# Job 2: Test star patterns (* and **)
+test-patterns:
   - stage: test
-  - image: maven:3.8.6-openjdk-8
+  - image: alpine:latest
   - script:
-    - echo "Running Maven tests..."
-    - mvn test
-    - echo "Tests completed successfully"
+    - echo "Creating files for pattern matching..."
+    # Create files for single star pattern
+    - mkdir -p app/target
+    - mkdir -p lib/target
+    - echo "app jar" > app/target/app.jar
+    - echo "lib jar" > lib/target/lib.jar
+    - echo "app log" > app/target/test.log
+    # Create nested structure for double star pattern
+    - mkdir -p deep/nested/dir/docs
+    - echo "doc1" > deep/doc.txt
+    - echo "doc2" > deep/nested/doc.txt
+    - echo "doc3" > deep/nested/dir/docs/doc.txt
+    - echo "Pattern test files created"
   - artifacts:
-    # Example 2: A directory (recursively uploads all contents)
-    # Note: Using consumer module as example since it has clear structure
-    - consumer/target/surefire-reports/
-    # Example 3a: Star for any match
-    - consumer/target/*.jar  # All JAR files in target
-    - "*.xml"  # All XML files (pom.xml, etc.)
-
-# Package job - demonstrates double star pattern (any depth)
-package:
-  - stage: package
-  - image: maven:3.8.6-openjdk-8
-  - script:
-    - echo "Packaging Maven project..."
-    - mvn package -DskipTests
-    - echo "Packaging completed successfully"
-  - artifacts:
-    # Example 3b: Double star for any depth
-    - "**/*.jar"  # All JAR files at any depth
-    - "**/*.war"  # All WAR files at any depth
-    # Example 3a.iii: Single star in directory path (one level only)
-    - "*/target/*.jar"  # JAR files in target dirs one level down
-
-# Deploy job - demonstrates directory patterns with wildcards
-deploy:
-  - stage: deploy
-  - image: maven:3.8.6-openjdk-8
-  - script:
-    - echo "Preparing deployment artifacts..."
-    - mkdir -p dist/libs
-    - mkdir -p dist/docs
-    - mkdir -p consumer/target/generated-docs
-    - find . -name "*.jar" -path "*/target/*" -exec cp {} dist/libs/ \;
-    - find . -name "*.war" -path "*/target/*" -exec cp {} dist/libs/ \;
-    - echo "Sample doc" > dist/docs/README.txt
-    - echo "Generated" > consumer/target/generated-docs/api.html
-    - echo "Deployment artifacts prepared"
-  - artifacts:
-    # Example 2: Directory with trailing /
-    - dist/  # Uploads entire dist directory recursively
-    # Example 3a.iii: Single star directory pattern (one level away)
-    - "dist/*/README.txt"  # Matches dist/docs/README.txt (one level)
-    # Example 3b.i: Double star directory pattern (any depth)
-    - "**/target/generated-docs/"  # All generated-docs dirs at any depth
+    # Pattern 3a: Single star (one level)
+    - "*/target/*.jar"  # Matches app/target/app.jar, lib/target/lib.jar
+    # Pattern 3b: Double star (any depth)
+    - "**/doc.txt"  # Matches all doc.txt at any depth
 
